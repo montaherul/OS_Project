@@ -1,4 +1,5 @@
 using ERDRR.Models.DTOs;
+using ERDRR.Models.Entities;
 using ERDRR.Repositories.Interfaces;
 using ERDRR.Services.Interfaces;
 
@@ -26,6 +27,24 @@ public class DashboardService : IDashboardService
         _logger = logger;
     }
 
+    private List<GanttChartDto> BuildGanttChart(List<SchedulingResult> results)
+    {
+        var entries = new List<GanttChartDto>();
+        foreach (var r in results)
+        {
+            if (string.IsNullOrWhiteSpace(r.GanttChartData))
+                continue;
+            try
+            {
+                var perProcess = System.Text.Json.JsonSerializer.Deserialize<List<GanttChartDto>>(r.GanttChartData);
+                if (perProcess != null)
+                    entries.AddRange(perProcess);
+            }
+            catch { }
+        }
+        return entries.OrderBy(e => e.StartTime).ThenBy(e => e.EndTime).ToList();
+    }
+
     public async Task<DashboardDto> GetDashboardDataAsync()
     {
         try
@@ -37,11 +56,11 @@ public class DashboardService : IDashboardService
                 .OrderByDescending(s => s.CreatedAt)
                 .ToList();
 
-            return new DashboardDto
+            var allSessionsList = new List<SessionDto>();
+            foreach (var s in allSessions)
             {
-                TotalSessions = totalSessions,
-                TotalProcesses = totalProcesses,
-                AllSessions = allSessions.Select(s => new SessionDto
+                var processCount = await _processRepository.CountBySessionIdAsync(s.Id);
+                allSessionsList.Add(new SessionDto
                 {
                     Id = s.Id,
                     Name = s.Name,
@@ -49,8 +68,16 @@ public class DashboardService : IDashboardService
                     TimeQuantum = s.TimeQuantum,
                     Status = s.Status,
                     IsPreemptive = s.IsPreemptive,
-                    CreatedAt = s.CreatedAt
-                }).ToList()
+                    CreatedAt = s.CreatedAt,
+                    ProcessCount = processCount
+                });
+            }
+
+            return new DashboardDto
+            {
+                TotalSessions = totalSessions,
+                TotalProcesses = totalProcesses,
+                AllSessions = allSessionsList
             };
         }
         catch (Exception ex)
@@ -134,16 +161,22 @@ public class DashboardService : IDashboardService
                 }
             }
 
-            var allSessionsList = allSessions.Select(s => new SessionDto
+            var allSessionsList = new List<SessionDto>();
+            foreach (var s in allSessions)
             {
-                Id = s.Id,
-                Name = s.Name,
-                AlgorithmType = s.AlgorithmType,
-                TimeQuantum = s.TimeQuantum,
-                Status = s.Status,
-                IsPreemptive = s.IsPreemptive,
-                CreatedAt = s.CreatedAt
-            }).ToList();
+                var processCount = await _processRepository.CountBySessionIdAsync(s.Id);
+                allSessionsList.Add(new SessionDto
+                {
+                    Id = s.Id,
+                    Name = s.Name,
+                    AlgorithmType = s.AlgorithmType,
+                    TimeQuantum = s.TimeQuantum,
+                    Status = s.Status,
+                    IsPreemptive = s.IsPreemptive,
+                    CreatedAt = s.CreatedAt,
+                    ProcessCount = processCount
+                });
+            }
 
             return new DashboardDto
             {
@@ -192,6 +225,11 @@ public class DashboardService : IDashboardService
                 .ToList();
             var totalProcesses = await _processRepository.CountAsync(p => !p.IsDeleted);
             var totalSessions = allSessions.Count;
+            var sessionProcessCount = await _processRepository.CountBySessionIdAsync(sessionId);
+
+            _logger.LogInformation(
+                "Dashboard: Session {SessionId} found. Processes in session: {ProcessCount}. Results: {ResultCount}",
+                sessionId, sessionProcessCount, selectedSessionResults.Count);
 
             double avgWaitingTime = selectedSessionResults.Count > 0
                 ? selectedSessionResults.Average(r => r.WaitingTime) : 0;
@@ -235,6 +273,8 @@ public class DashboardService : IDashboardService
                 new() { Status = "Missed Deadline", Count = missed }
             };
 
+            var ganttChart = BuildGanttChart(selectedSessionResults);
+
             var sessionPerformances = new List<SessionPerformanceDto>();
             foreach (var s in allSessions)
             {
@@ -276,7 +316,7 @@ public class DashboardService : IDashboardService
                 AlgorithmType = session.AlgorithmType,
                 SessionCreatedDate = session.CreatedAt,
 
-                SessionProcessCount = selectedSessionResults.Count,
+                SessionProcessCount = sessionProcessCount,
                 CompletedProcesses = completedProcesses,
                 MissedDeadlines = missedDeadlines,
                 TotalExecutionTime = totalTime,
@@ -290,6 +330,7 @@ public class DashboardService : IDashboardService
 
                 ProcessResults = processResults,
                 ProcessStatistics = processStats,
+                GanttChart = ganttChart,
                 SessionPerformances = sessionPerformances,
                 AllSessions = allSessionsList
             };
@@ -375,16 +416,22 @@ public class DashboardService : IDashboardService
                 }
             }
 
-            var allSessionsList = userSessions.Select(s => new SessionDto
+            var allSessionsList = new List<SessionDto>();
+            foreach (var s in userSessions)
             {
-                Id = s.Id,
-                Name = s.Name,
-                AlgorithmType = s.AlgorithmType,
-                TimeQuantum = s.TimeQuantum,
-                Status = s.Status,
-                IsPreemptive = s.IsPreemptive,
-                CreatedAt = s.CreatedAt
-            }).ToList();
+                var processCount = await _processRepository.CountBySessionIdAsync(s.Id);
+                allSessionsList.Add(new SessionDto
+                {
+                    Id = s.Id,
+                    Name = s.Name,
+                    AlgorithmType = s.AlgorithmType,
+                    TimeQuantum = s.TimeQuantum,
+                    Status = s.Status,
+                    IsPreemptive = s.IsPreemptive,
+                    CreatedAt = s.CreatedAt,
+                    ProcessCount = processCount
+                });
+            }
 
             return new DashboardDto
             {

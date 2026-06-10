@@ -309,6 +309,56 @@
     </div>
 </div>
 
+<!-- Gantt Chart -->
+@if (hasResults && stats.GanttChart.Any())
+{
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white">
+            <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Gantt Chart</h5>
+        </div>
+        <div class="card-body">
+            @{
+                var ganttProcessIds = stats.GanttChart.Select(g => g.ProcessId).Distinct().ToList();
+                var ganttColors = new[] { "#0d6efd", "#198754", "#dc3545", "#ffc107", "#0dcaf0", "#6f42c1", "#fd7e14", "#20c997", "#e83e8c", "#6610f2" };
+                var totalTime = stats.GanttChart.Max(g => g.EndTime);
+            }
+            <div class="gantt-container" style="overflow-x:auto;position:relative;">
+                <div class="gantt-time-axis d-flex mb-1" style="padding-left:160px;">
+                    @for (int t = 0; t <= totalTime; t++)
+                    {
+                        <div style="flex:1;text-align:center;font-size:11px;color:#6c757d;border-left:1px solid #dee2e6;">@t</div>
+                    }
+                </div>
+                @foreach (var pid in ganttProcessIds)
+                {
+                    var processName = stats.GanttChart.First(g => g.ProcessId == pid).ProcessName;
+                    var entries = stats.GanttChart.Where(g => g.ProcessId == pid).OrderBy(g => g.StartTime).ToList();
+                    var colorIndex = ganttProcessIds.IndexOf(pid) % ganttColors.Length;
+                    var color = ganttColors[colorIndex];
+                    <div class="gantt-row d-flex align-items-center mb-1" style="min-height:32px;">
+                        <div class="gantt-label" style="width:150px;flex-shrink:0;font-size:13px;font-weight:500;padding-right:10px;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="@processName">
+                            @processName
+                        </div>
+                        <div class="gantt-bars" style="flex:1;position:relative;height:28px;background:#f8f9fa;border-radius:4px;">
+                            @foreach (var e in entries)
+                            {
+                                var leftPct = totalTime > 0 ? ((double)e.StartTime / totalTime * 100) : 0;
+                                var widthPct = totalTime > 0 ? ((double)(e.EndTime - e.StartTime) / totalTime * 100) : 0;
+                                <div class="gantt-bar" style="position:absolute;left:@leftPct.ToString("F1")%;width:@Math.Max(widthPct, 1).ToString("F1")%;height:22px;top:3px;border-radius:3px;background-color:@color;opacity:0.85;font-size:10px;color:#fff;display:flex;align-items:center;justify-content:center;white-space:nowrap;overflow:hidden;" title="@processName [@e.StartTime - @e.EndTime]">
+                                    @if (widthPct > 8)
+                                    {
+                                        <span>@e.StartTime-@e.EndTime</span>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
 <!-- Process Results Table -->
 @if (hasResults)
 {
@@ -434,6 +484,7 @@
         var processResults = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(stats.ProcessResults, jsonSerializerOptions));
         var processStats = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(stats.ProcessStatistics, jsonSerializerOptions));
         var sessionPerformances = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(stats.SessionPerformances, jsonSerializerOptions));
+        var ganttChart = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(stats.GanttChart, jsonSerializerOptions));
 
         (function () {
             function destroyChart(id) {

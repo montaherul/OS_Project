@@ -131,6 +131,9 @@ public class DashboardDto
 
     // All sessions for selector
     public List<SessionDto> AllSessions { get; set; } = new();
+
+    // Gantt chart data
+    public List<GanttChartDto> GanttChart { get; set; } = new();
 }
 
 public class ProcessResultDto
