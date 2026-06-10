@@ -11,6 +11,11 @@ public class ProcessDto
     public int Priority { get; set; }
     public string Status { get; set; } = "Pending";
     public int SchedulingSessionId { get; set; }
+    public int CompletionTime { get; set; }
+    public int TurnaroundTime { get; set; }
+    public int WaitingTime { get; set; }
+    public int ResponseTime { get; set; }
+    public bool MissedDeadline { get; set; }
 }
 
 public class CreateProcessDto

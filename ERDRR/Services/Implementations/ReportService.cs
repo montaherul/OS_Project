@@ -65,16 +65,18 @@ public class ReportService : IReportService
                 TotalProcesses = resultList.Count,
                 CompletedProcesses = resultList.Count(r => r.CompletionTime > 0)
             },
-            Processes = processes.Select(p => new ProcessDto
+            Processes = resultList.Select(r => new ProcessDto
             {
-                Id = p.Id,
-                Name = p.Name,
-                ProcessId = p.ProcessId,
-                ArrivalTime = p.ArrivalTime,
-                BurstTime = p.BurstTime,
-                Deadline = p.Deadline,
-                Priority = p.Priority,
-                Status = p.Status
+                ProcessId = r.ProcessId,
+                Name = r.ProcessName,
+                ArrivalTime = r.ArrivalTime,
+                BurstTime = r.BurstTime,
+                Deadline = r.Deadline,
+                CompletionTime = r.CompletionTime,
+                TurnaroundTime = r.TurnaroundTime,
+                WaitingTime = r.WaitingTime,
+                ResponseTime = r.ResponseTime,
+                MissedDeadline = r.IsMissedDeadline
             }).ToList(),
             ExecutionLogs = logs.Select(l => new ExecutionLogDto
             {
