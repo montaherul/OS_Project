@@ -16,6 +16,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<SchedulingSession> SchedulingSessions => Set<SchedulingSession>();
     public DbSet<SchedulingResult> SchedulingResults => Set<SchedulingResult>();
     public DbSet<ExecutionLog> ExecutionLogs => Set<ExecutionLog>();
+    public DbSet<AlgorithmComparison> AlgorithmComparisons => Set<AlgorithmComparison>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -69,6 +70,16 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
+        builder.Entity<AlgorithmComparison>(entity =>
+        {
+            entity.HasIndex(e => e.SchedulingSessionId);
+            entity.HasIndex(e => e.UserId);
+            entity.HasOne(e => e.SchedulingSession)
+                .WithMany()
+                .HasForeignKey(e => e.SchedulingSessionId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
         SeedData(builder);
     }
 
@@ -81,9 +92,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             new ApplicationUser
             {
                 Id = adminId,
-                UserName = "admin@erdr.com",
+                UserName = "admin@erdrr.com",
                 NormalizedUserName = "ADMIN@ERDRR.COM",
-                Email = "admin@erdr.com",
+                Email = "admin@erdrr.com",
                 NormalizedEmail = "ADMIN@ERDRR.COM",
                 EmailConfirmed = true,
                 PasswordHash = "AQAAAAIAAYagAAAAEOj45gtf5V6AJ+8RVY4fOo2GutZGEX8a89CbleFQjF2F8lpFNnhU2bTVM/nDl8jFHQ==",
@@ -102,9 +113,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             new ApplicationUser
             {
                 Id = userId,
-                UserName = "user@erdr.com",
+                UserName = "user@erdrr.com",
                 NormalizedUserName = "USER@ERDRR.COM",
-                Email = "user@erdr.com",
+                Email = "user@erdrr.com",
                 NormalizedEmail = "USER@ERDRR.COM",
                 EmailConfirmed = true,
                 PasswordHash = "AQAAAAIAAYagAAAAEF5uLQNal2ETe7OHuocUE8wOslEw/U7GN9LM+lwpSj/jrcy+s0kI7BLKcwuCOtxXRQ==",

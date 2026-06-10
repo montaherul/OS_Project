@@ -40,6 +40,7 @@ builder.Services.AddScoped<IProcessRepository, ProcessRepository>();
 builder.Services.AddScoped<ISessionRepository, SessionRepository>();
 builder.Services.AddScoped<IResultRepository, ResultRepository>();
 builder.Services.AddScoped<IExecutionLogRepository, ExecutionLogRepository>();
+builder.Services.AddScoped<IComparisonRepository, ComparisonRepository>();
 
 builder.Services.AddScoped<IProcessService, ProcessService>();
 builder.Services.AddScoped<IProcessImportService, ProcessImportService>();
@@ -47,6 +48,7 @@ builder.Services.AddScoped<ISessionService, SessionService>();
 builder.Services.AddScoped<ISimulationService, SimulationService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IReportService, ReportService>();
+builder.Services.AddScoped<IComparisonService, ComparisonService>();
 
 builder.Services.AddSingleton<SchedulingEngine>();
 
@@ -76,8 +78,10 @@ app.MapRazorPages();
 
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    var services = scope.ServiceProvider;
+    var db = services.GetRequiredService<ApplicationDbContext>();
     db.Database.Migrate();
+    await DataSeeder.SeedAsync(services);
 }
 
 app.Run();
