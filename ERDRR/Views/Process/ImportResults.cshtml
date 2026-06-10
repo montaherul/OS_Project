@@ -1,0 +1,77 @@
+@model ERDRR.Models.ViewModels.ProcessImportResult
+@{
+    ViewData["Title"] = "Import Results";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header @(Model.HasErrors ? "bg-warning" : "bg-success") text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-file-import me-2"></i>Import Results
+                </h4>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Session: <strong>@Model.SessionName</strong></p>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <div class="text-center p-3 rounded border">
+                            <h3 class="text-primary">@Model.TotalRows</h3>
+                            <small class="text-muted">Total Rows</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center p-3 rounded border">
+                            <h3 class="text-success">@Model.ImportedRows</h3>
+                            <small class="text-muted">Imported</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center p-3 rounded border">
+                            <h3 class="text-danger">@Model.FailedRows</h3>
+                            <small class="text-muted">Failed</small>
+                        </div>
+                    </div>
+                </div>
+
+                @if (Model.HasErrors)
+                {
+                    <h5><i class="fas fa-exclamation-triangle text-warning me-1"></i>Validation Errors</h5>
+                    <div class="table-responsive mb-4">
+                        <table class="table table-sm table-bordered table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Row</th>
+                                    <th>Process Name</th>
+                                    <th>Errors</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var error in Model.RowErrors)
+                                {
+                                    <tr class="table-danger">
+                                        <td>@error.RowNumber</td>
+                                        <td>@(string.IsNullOrEmpty(error.ProcessName) ? "(empty)" : error.ProcessName)</td>
+                                        <td>
+                                            @string.Join(" | ", error.Errors)
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+
+                <div class="d-flex gap-2">
+                    <a asp-action="Index" asp-route-sessionId="@Model.SchedulingSessionId" class="btn btn-primary">
+                        <i class="fas fa-list me-1"></i>View All Processes
+                    </a>
+                    <a asp-action="Import" asp-route-sessionId="@Model.SchedulingSessionId" class="btn btn-outline-success">
+                        <i class="fas fa-file-import me-1"></i>Import More
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

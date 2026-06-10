@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="ERDRR/ERDRR.csproj" />
+  <Project Path="ERDRR.Tests/ERDRR.Tests.csproj" />
+</Solution>

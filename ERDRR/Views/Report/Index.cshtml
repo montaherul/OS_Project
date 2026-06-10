@@ -1,0 +1,170 @@
+@model ERDRR.Models.ViewModels.ReportViewModel
+@{
+    ViewData["Title"] = "Reports";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-chart-bar me-2"></i>Reports</h2>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Select Session</h5>
+            </div>
+            <div class="card-body">
+                @if (Model.Sessions.Any())
+                {
+                    <div class="list-group">
+                        @foreach (var session in Model.Sessions)
+                        {
+                            <a asp-action="ViewReport" asp-route-sessionId="@session.Id"
+                               class="list-group-item list-group-item-action @(Model.SelectedSessionId == session.Id ? "active" : "")">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h6 class="mb-1">@session.Name</h6>
+                                        <small>@session.AlgorithmType</small>
+                                    </div>
+                                    <span class="badge @(session.Status == "Completed" ? "bg-success" : "bg-secondary")">
+                                        @session.Status
+                                    </span>
+                                </div>
+                            </a>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted">No sessions available.</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        @if (Model.Report != null)
+        {
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-primary text-white d-flex justify-content-between">
+                    <h5 class="mb-0">
+                        <i class="fas fa-file-alt me-2"></i>Report: @Model.Report.SessionName
+                    </h5>
+                    <div class="d-flex gap-2">
+                        <a asp-action="DownloadPdf" asp-route-sessionId="@Model.Report.SessionId" class="btn btn-sm btn-light">
+                            <i class="fas fa-file-pdf me-1"></i>PDF
+                        </a>
+                        <a asp-action="DownloadExcel" asp-route-sessionId="@Model.Report.SessionId" class="btn btn-sm btn-light">
+                            <i class="fas fa-file-excel me-1"></i>Excel
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p><strong>Algorithm:</strong> @Model.Report.AlgorithmType</p>
+                            <p><strong>Generated:</strong> @Model.Report.GeneratedAt.ToString("MMM dd, yyyy HH:mm")</p>
+                        </div>
+                    </div>
+
+                    <h5>Performance Metrics</h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-3">
+                            <div class="text-center p-3 bg-light rounded">
+                                <h4 class="text-primary">@Model.Report.Metrics.AverageWaitingTime</h4>
+                                <small>Avg Waiting Time</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center p-3 bg-light rounded">
+                                <h4 class="text-info">@Model.Report.Metrics.AverageTurnaroundTime</h4>
+                                <small>Avg Turnaround Time</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center p-3 bg-light rounded">
+                                <h4 class="text-success">@Model.Report.Metrics.CpuUtilization%</h4>
+                                <small>CPU Utilization</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center p-3 bg-light rounded">
+                                <h4 class="text-danger">@Model.Report.Metrics.MissedDeadlines</h4>
+                                <small>Missed Deadlines</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h5>Process Results</h5>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>PID</th>
+                                    <th>Name</th>
+                                    <th>Arrival</th>
+                                    <th>Burst</th>
+                                    <th>Completion</th>
+                                    <th>Turnaround</th>
+                                    <th>Waiting</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var process in Model.Report.Processes)
+                                {
+                                    <tr>
+                                        <td><code>@process.ProcessId</code></td>
+                                        <td>@process.Name</td>
+                                        <td>@process.ArrivalTime</td>
+                                        <td>@process.BurstTime</td>
+                                        <td>-</td>
+                                        <td>-</td>
+                                        <td>-</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    @if (Model.Report.ExecutionLogs.Any())
+                    {
+                        <h5>Execution Log</h5>
+                        <div class="table-responsive" style="max-height:300px;overflow-y:auto;">
+                            <table class="table table-sm table-striped">
+                                <thead class="table-light sticky-top">
+                                    <tr>
+                                        <th>Time</th>
+                                        <th>Action</th>
+                                        <th>Process</th>
+                                        <th>Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var log in Model.Report.ExecutionLogs)
+                                    {
+                                        <tr>
+                                            <td>@log.TimeStep</td>
+                                            <td><span class="badge bg-info">@log.Action</span></td>
+                                            <td>@log.ProcessName</td>
+                                            <td><small>@log.Details</small></td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-chart-bar fa-3x text-muted mb-3"></i>
+                    <h4>Select a Session</h4>
+                    <p class="text-muted">Choose a session from the list to view its report.</p>
+                </div>
+            </div>
+        }
+    </div>
+</div>

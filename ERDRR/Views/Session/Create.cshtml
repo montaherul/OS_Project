@@ -1,0 +1,69 @@
+@model ERDRR.Models.ViewModels.SessionCreateViewModel
+@{
+    ViewData["Title"] = "Create Session";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="fas fa-plus me-2"></i>Create Scheduling Session</h4>
+            </div>
+            <div class="card-body">
+                <form asp-action="Create" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label">Session Name *</label>
+                        <input asp-for="Name" class="form-control" placeholder="e.g., Test Scenario 1" />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label">Description</label>
+                        <textarea asp-for="Description" class="form-control" rows="3" placeholder="Optional description"></textarea>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="AlgorithmType" class="form-label">Algorithm Type *</label>
+                            <select asp-for="AlgorithmType" class="form-select">
+                                <option value="Hybrid">Hybrid EDF + Round Robin</option>
+                                <option value="EDF">Earliest Deadline First (EDF)</option>
+                                <option value="RR">Round Robin (RR)</option>
+                            </select>
+                            <span asp-validation-for="AlgorithmType" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="TimeQuantum" class="form-label">Time Quantum</label>
+                            <input asp-for="TimeQuantum" class="form-control" type="number" min="1" max="100" />
+                            <span asp-validation-for="TimeQuantum" class="text-danger"></span>
+                            <small class="text-muted">Used by RR and Hybrid algorithms</small>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="form-check form-switch">
+                            <input asp-for="IsPreemptive" class="form-check-input" />
+                            <label asp-for="IsPreemptive" class="form-check-label">Preemptive Mode</label>
+                        </div>
+                        <small class="text-muted">Allow higher-priority processes to interrupt running processes</small>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>Create Session
+                        </button>
+                        <a asp-action="Index" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-1"></i>Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

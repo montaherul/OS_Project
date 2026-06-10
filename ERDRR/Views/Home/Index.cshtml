@@ -1,0 +1,156 @@
+﻿@{
+    ViewData["Title"] = "Home";
+}
+
+<div class="hero-section text-center py-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h1 class="display-4 fw-bold text-primary mb-3">
+                <i class="fas fa-microchip me-3"></i>ERDRR
+            </h1>
+            <p class="lead text-muted mb-4">
+                <strong>Adaptive Hybrid CPU Scheduling Framework for Real-Time Systems</strong>
+            </p>
+            <p class="mb-4">
+                Simulate, analyze, and visualize real-time CPU scheduling using a hybrid algorithm
+                that combines <strong>Earliest Deadline First (EDF)</strong> and <strong>Round Robin (RR)</strong> algorithms.
+            </p>
+            <div class="d-flex justify-content-center gap-3">
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <a asp-controller="Dashboard" asp-action="Index" class="btn btn-primary btn-lg">
+                        <i class="fas fa-tachometer-alt me-2"></i>Go to Dashboard
+                    </a>
+                    <a asp-controller="Session" asp-action="Create" class="btn btn-outline-primary btn-lg">
+                        <i class="fas fa-plus me-2"></i>New Session
+                    </a>
+                }
+                else
+                {
+                    <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-primary btn-lg">
+                        <i class="fas fa-sign-in-alt me-2"></i>Get Started
+                    </a>
+                    <a asp-area="Identity" asp-page="/Account/Register" class="btn btn-outline-primary btn-lg">
+                        <i class="fas fa-user-plus me-2"></i>Register
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-5">
+    <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body text-center">
+                <div class="feature-icon bg-primary bg-gradient text-white rounded-circle mb-3 mx-auto d-flex align-items-center justify-content-center" style="width:60px;height:60px">
+                    <i class="fas fa-cogs fa-2x"></i>
+                </div>
+                <h5 class="card-title">Hybrid Scheduling</h5>
+                <p class="card-text text-muted">
+                    Combines EDF deadline-awareness with Round Robin fairness for optimal real-time scheduling.
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body text-center">
+                <div class="feature-icon bg-success bg-gradient text-white rounded-circle mb-3 mx-auto d-flex align-items-center justify-content-center" style="width:60px;height:60px">
+                    <i class="fas fa-chart-line fa-2x"></i>
+                </div>
+                <h5 class="card-title">Real-Time Visualization</h5>
+                <p class="card-text text-muted">
+                    Interactive Gantt charts, performance metrics, and step-by-step execution simulation.
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body text-center">
+                <div class="feature-icon bg-info bg-gradient text-white rounded-circle mb-3 mx-auto d-flex align-items-center justify-content-center" style="width:60px;height:60px">
+                    <i class="fas fa-file-alt fa-2x"></i>
+                </div>
+                <h5 class="card-title">Detailed Reports</h5>
+                <p class="card-text text-muted">
+                    Export PDF and Excel reports with comprehensive scheduling analysis and metrics.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-5">
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Supported Algorithms</h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    <div class="list-group-item d-flex align-items-center">
+                        <span class="badge bg-danger me-3">EDF</span>
+                        <div>
+                            <strong>Earliest Deadline First</strong>
+                            <p class="mb-0 text-muted small">Preemptive & Non-preemptive modes. Selects process with nearest deadline.</p>
+                        </div>
+                    </div>
+                    <div class="list-group-item d-flex align-items-center">
+                        <span class="badge bg-primary me-3">RR</span>
+                        <div>
+                            <strong>Round Robin</strong>
+                            <p class="mb-0 text-muted small">Time-quantum based fair scheduling with configurable quantum.</p>
+                        </div>
+                    </div>
+                    <div class="list-group-item d-flex align-items-center">
+                        <span class="badge bg-success me-3">Hybrid</span>
+                        <div>
+                            <strong>EDF + Round Robin</strong>
+                            <p class="mb-0 text-muted small">Best of both: EDF priority with RR fairness for identical deadlines.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0"><i class="fas fa-calculator me-2"></i>Performance Metrics</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="text-center p-3 rounded bg-light">
+                            <i class="fas fa-clock text-warning fa-2x mb-2"></i>
+                            <h6>Waiting Time</h6>
+                            <small class="text-muted">Time spent in ready queue</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-center p-3 rounded bg-light">
+                            <i class="fas fa-hourglass-half text-info fa-2x mb-2"></i>
+                            <h6>Turnaround Time</h6>
+                            <small class="text-muted">Total time in system</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-center p-3 rounded bg-light">
+                            <i class="fas fa-bolt text-success fa-2x mb-2"></i>
+                            <h6>Response Time</h6>
+                            <small class="text-muted">Time to first execution</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-center p-3 rounded bg-light">
+                            <i class="fas fa-server text-primary fa-2x mb-2"></i>
+                            <h6>CPU Utilization</h6>
+                            <small class="text-muted">Percentage CPU used</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

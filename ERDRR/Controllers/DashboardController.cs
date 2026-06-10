@@ -1,0 +1,64 @@
+using System.Security.Claims;
+using ERDRR.Models.DTOs;
+using ERDRR.Models.ViewModels;
+using ERDRR.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace ERDRR.Controllers;
+
+[Authorize]
+public class DashboardController : Controller
+{
+    private readonly IDashboardService _dashboardService;
+    private readonly ISessionService _sessionService;
+    private readonly ILogger<DashboardController> _logger;
+
+    public DashboardController(
+        IDashboardService dashboardService,
+        ISessionService sessionService,
+        ILogger<DashboardController> logger)
+    {
+        _dashboardService = dashboardService;
+        _sessionService = sessionService;
+        _logger = logger;
+    }
+
+    public async Task<IActionResult> Index(int? sessionId)
+    {
+        try
+        {
+            DashboardDto data;
+
+            if (sessionId.HasValue)
+            {
+                data = await _dashboardService.GetDashboardDataForSessionAsync(sessionId.Value);
+            }
+            else
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                data = string.IsNullOrEmpty(userId)
+                    ? await _dashboardService.GetDashboardDataAsync()
+                    : await _dashboardService.GetDashboardDataForUserAsync(userId);
+            }
+
+            var viewModel = new DashboardViewModel
+            {
+                Statistics = data,
+                SelectedSessionId = sessionId
+            };
+
+            return View(viewModel);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading dashboard for session {SessionId}", sessionId);
+            TempData["Error"] = "An error occurred while loading the dashboard.";
+            return View(new DashboardViewModel
+            {
+                Statistics = new DashboardDto(),
+                SelectedSessionId = sessionId
+            });
+        }
+    }
+}

@@ -1,0 +1,64 @@
+@model ERDRR.Models.ViewModels.ImportProcessViewModel
+@{
+    ViewData["Title"] = "Import Processes";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0"><i class="fas fa-file-import me-2"></i>Import Processes</h4>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">
+                    Session: <strong>@Model.SessionName</strong>
+                    &mdash; Upload an Excel (.xlsx) or CSV (.csv) file with process data.
+                </p>
+
+                <div class="alert alert-info">
+                    <h6><i class="fas fa-info-circle me-1"></i>Expected File Format</h6>
+                    <p class="mb-1">The file must have the following columns (with header row):</p>
+                    <code>ProcessName,ArrivalTime,BurstTime,Deadline,Priority</code>
+                    <p class="mt-2 mb-0">
+                        <strong>Validation Rules:</strong>
+                        ProcessName required &bull; ArrivalTime &ge; 0 &bull; BurstTime &gt; 0 &bull; Deadline &gt; 0 &bull; Priority &gt; 0
+                    </p>
+                </div>
+
+                <div class="d-flex gap-2 mb-4">
+                    <a asp-action="DownloadSampleCsv" class="btn btn-outline-success btn-sm">
+                        <i class="fas fa-file-csv me-1"></i>Download Sample CSV
+                    </a>
+                    <a asp-action="DownloadSampleExcel" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-file-excel me-1"></i>Download Sample Excel
+                    </a>
+                </div>
+
+                <form asp-action="Import" method="post" enctype="multipart/form-data">
+                    <input type="hidden" asp-for="SchedulingSessionId" />
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <div class="mb-4">
+                        <label asp-for="File" class="form-label">Select File</label>
+                        <input asp-for="File" class="form-control" accept=".xlsx,.csv" />
+                        <span asp-validation-for="File" class="text-danger"></span>
+                        <small class="text-muted">Supported formats: .xlsx, .csv (max 10MB)</small>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-upload me-1"></i>Upload &amp; Import
+                        </button>
+                        <a asp-action="Index" asp-route-sessionId="@Model.SchedulingSessionId" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-1"></i>Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,77 @@
+@{
+    ViewData["Title"] = "About";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <h2 class="mb-4"><i class="fas fa-info-circle me-2"></i>About ERDRR</h2>
+
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <h4>Adaptive Hybrid CPU Scheduling Framework</h4>
+                <p class="lead">
+                    ERDRR is a comprehensive web-based platform that simulates, analyzes, and visualizes
+                    real-time CPU scheduling using a hybrid algorithm that combines Earliest Deadline First (EDF)
+                    and Round Robin (RR) algorithms.
+                </p>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <h5><i class="fas fa-bullseye text-primary me-2"></i>Objectives</h5>
+                        <ul class="list-unstyled">
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Implement EDF, RR, and Hybrid schedulers</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Interactive Gantt chart visualization</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Real-time performance metrics</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Step-by-step simulation control</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>PDF and Excel report generation</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <h5><i class="fas fa-code text-success me-2"></i>Technology Stack</h5>
+                        <ul class="list-unstyled">
+                            <li class="mb-2"><i class="fas fa-server text-primary me-2"></i>ASP.NET Core MVC (.NET 8)</li>
+                            <li class="mb-2"><i class="fas fa-database text-warning me-2"></i>Entity Framework Core + SQL Server</li>
+                            <li class="mb-2"><i class="fas fa-shield-alt text-danger me-2"></i>ASP.NET Core Identity</li>
+                            <li class="mb-2"><i class="fas fa-palette text-info me-2"></i>Bootstrap 5 + Chart.js</li>
+                            <li class="mb-2"><i class="fas fa-file-pdf text-danger me-2"></i>iTextSharp + ClosedXML</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h5><i class="fas fa-cogs text-warning me-2"></i>Supported Algorithms</h5>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="text-center p-3">
+                            <h6 class="text-danger">EDF</h6>
+                            <p class="small text-muted">Earliest Deadline First - Selects the process with the nearest deadline for execution.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center p-3">
+                            <h6 class="text-primary">Round Robin</h6>
+                            <p class="small text-muted">Time-quantum based fair scheduling with configurable time slices.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center p-3">
+                            <h6 class="text-success">Hybrid EDF+RR</h6>
+                            <p class="small text-muted">Combines EDF priority with RR fairness for optimal real-time scheduling.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
