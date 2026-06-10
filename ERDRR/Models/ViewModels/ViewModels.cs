@@ -7,6 +7,7 @@ public class DashboardViewModel
     public DashboardDto Statistics { get; set; } = new();
     public List<SessionDto> RecentSessions { get; set; } = new();
     public int? SelectedSessionId { get; set; }
+    public bool IsAdmin { get; set; }
 }
 
 public class ProcessListViewModel

@@ -60,6 +60,120 @@ public class DashboardService : IDashboardService
         }
     }
 
+    public async Task<DashboardDto> GetAdminDashboardDataAsync()
+    {
+        try
+        {
+            var allSessions = (await _sessionRepository.GetAllAsync())
+                .Where(s => !s.IsDeleted)
+                .OrderByDescending(s => s.CreatedAt)
+                .ToList();
+            var allResults = (await _resultRepository.GetAllWithSessionInfoAsync()).ToList();
+            var totalProcesses = await _processRepository.CountAsync(p => !p.IsDeleted);
+            var totalSessions = allSessions.Count;
+
+            double avgWaitingTime = allResults.Count > 0
+                ? allResults.Average(r => r.WaitingTime) : 0;
+            double avgTurnaroundTime = allResults.Count > 0
+                ? allResults.Average(r => r.TurnaroundTime) : 0;
+            double avgResponseTime = allResults.Count > 0
+                ? allResults.Average(r => r.ResponseTime) : 0;
+            double avgCpuUtil = allResults.Count > 0
+                ? allResults.Average(r => r.CpuUtilization) : 0;
+            double avgThroughput = allResults.Count > 0
+                ? allResults.Average(r => r.Throughput) : 0;
+            int contextSwitches = allResults.Count > 0
+                ? allResults.First().ContextSwitchCount : 0;
+            int missedDeadlines = allResults.Count(r => r.IsMissedDeadline);
+            int completedResults = allResults.Count;
+            int totalTime = allResults.Count > 0
+                ? allResults.Max(r => r.EndTime) : 0;
+            double deadlineSuccess = completedResults > 0
+                ? Math.Round((double)(completedResults - missedDeadlines) / completedResults * 100, 1)
+                : 0;
+
+            var processResults = allResults.Select(r => new ProcessResultDto
+            {
+                ProcessId = r.ProcessId,
+                ProcessName = r.ProcessName,
+                ArrivalTime = r.ArrivalTime,
+                BurstTime = r.BurstTime,
+                Deadline = r.Deadline,
+                CompletionTime = r.CompletionTime,
+                WaitingTime = r.WaitingTime,
+                TurnaroundTime = r.TurnaroundTime,
+                ResponseTime = r.ResponseTime,
+                MissedDeadline = r.IsMissedDeadline
+            }).ToList();
+
+            var completed = allResults.Count(r => !r.IsMissedDeadline);
+            var missed = allResults.Count(r => r.IsMissedDeadline);
+            var processStats = new List<ProcessStatisticsDto>
+            {
+                new() { Status = "Completed", Count = completed },
+                new() { Status = "Missed Deadline", Count = missed }
+            };
+
+            var sessionPerformances = new List<SessionPerformanceDto>();
+            foreach (var s in allSessions)
+            {
+                var sessionResults = allResults
+                    .Where(r => r.SchedulingSessionId == s.Id)
+                    .ToList();
+
+                if (sessionResults.Count > 0)
+                {
+                    sessionPerformances.Add(new SessionPerformanceDto
+                    {
+                        SessionName = s.Name,
+                        AlgorithmType = s.AlgorithmType,
+                        CpuUtilization = Math.Round(sessionResults.Average(r => r.CpuUtilization), 2),
+                        Throughput = Math.Round(sessionResults.Average(r => r.Throughput), 4),
+                        MissedDeadlines = sessionResults.Count(r => r.IsMissedDeadline)
+                    });
+                }
+            }
+
+            var allSessionsList = allSessions.Select(s => new SessionDto
+            {
+                Id = s.Id,
+                Name = s.Name,
+                AlgorithmType = s.AlgorithmType,
+                TimeQuantum = s.TimeQuantum,
+                Status = s.Status,
+                IsPreemptive = s.IsPreemptive,
+                CreatedAt = s.CreatedAt
+            }).ToList();
+
+            return new DashboardDto
+            {
+                TotalSessions = totalSessions,
+                TotalProcesses = totalProcesses,
+
+                CompletedProcesses = completedResults,
+                MissedDeadlines = missedDeadlines,
+                TotalExecutionTime = totalTime,
+                AverageWaitingTime = Math.Round(avgWaitingTime, 2),
+                AverageTurnaroundTime = Math.Round(avgTurnaroundTime, 2),
+                AverageResponseTime = Math.Round(avgResponseTime, 2),
+                CpuUtilization = Math.Round(avgCpuUtil, 2),
+                Throughput = Math.Round(avgThroughput, 4),
+                ContextSwitchCount = contextSwitches,
+                DeadlineSuccessRate = deadlineSuccess,
+
+                ProcessResults = processResults,
+                ProcessStatistics = processStats,
+                SessionPerformances = sessionPerformances,
+                AllSessions = allSessionsList
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading admin dashboard data");
+            return new DashboardDto();
+        }
+    }
+
     public async Task<DashboardDto> GetDashboardDataForSessionAsync(int sessionId)
     {
         try
@@ -191,24 +305,107 @@ public class DashboardService : IDashboardService
     {
         try
         {
-            var totalSessions = await _sessionRepository.CountByUserIdAsync(userId);
-            var totalProcesses = await _processRepository.CountAsync(p => !p.IsDeleted);
             var userSessions = (await _sessionRepository.GetByUserIdAsync(userId)).ToList();
+            var userSessionIds = userSessions.Select(s => s.Id).ToList();
+            var allResults = (await _resultRepository.GetAllWithSessionInfoAsync())
+                .Where(r => userSessionIds.Contains(r.SchedulingSessionId))
+                .ToList();
+            var totalProcesses = await _processRepository.CountAsync(p => !p.IsDeleted);
+            var totalSessions = userSessions.Count;
+
+            double avgWaitingTime = allResults.Count > 0
+                ? allResults.Average(r => r.WaitingTime) : 0;
+            double avgTurnaroundTime = allResults.Count > 0
+                ? allResults.Average(r => r.TurnaroundTime) : 0;
+            double avgResponseTime = allResults.Count > 0
+                ? allResults.Average(r => r.ResponseTime) : 0;
+            double avgCpuUtil = allResults.Count > 0
+                ? allResults.Average(r => r.CpuUtilization) : 0;
+            double avgThroughput = allResults.Count > 0
+                ? allResults.Average(r => r.Throughput) : 0;
+            int contextSwitches = allResults.Count > 0
+                ? allResults.First().ContextSwitchCount : 0;
+            int missedDeadlines = allResults.Count(r => r.IsMissedDeadline);
+            int completedResults = allResults.Count;
+            int totalTime = allResults.Count > 0
+                ? allResults.Max(r => r.EndTime) : 0;
+            double deadlineSuccess = completedResults > 0
+                ? Math.Round((double)(completedResults - missedDeadlines) / completedResults * 100, 1)
+                : 0;
+
+            var processResults = allResults.Select(r => new ProcessResultDto
+            {
+                ProcessId = r.ProcessId,
+                ProcessName = r.ProcessName,
+                ArrivalTime = r.ArrivalTime,
+                BurstTime = r.BurstTime,
+                Deadline = r.Deadline,
+                CompletionTime = r.CompletionTime,
+                WaitingTime = r.WaitingTime,
+                TurnaroundTime = r.TurnaroundTime,
+                ResponseTime = r.ResponseTime,
+                MissedDeadline = r.IsMissedDeadline
+            }).ToList();
+
+            var completed = allResults.Count(r => !r.IsMissedDeadline);
+            var missed = allResults.Count(r => r.IsMissedDeadline);
+            var processStats = new List<ProcessStatisticsDto>
+            {
+                new() { Status = "Completed", Count = completed },
+                new() { Status = "Missed Deadline", Count = missed }
+            };
+
+            var sessionPerformances = new List<SessionPerformanceDto>();
+            foreach (var s in userSessions)
+            {
+                var sessionResults = allResults
+                    .Where(r => r.SchedulingSessionId == s.Id)
+                    .ToList();
+
+                if (sessionResults.Count > 0)
+                {
+                    sessionPerformances.Add(new SessionPerformanceDto
+                    {
+                        SessionName = s.Name,
+                        AlgorithmType = s.AlgorithmType,
+                        CpuUtilization = Math.Round(sessionResults.Average(r => r.CpuUtilization), 2),
+                        Throughput = Math.Round(sessionResults.Average(r => r.Throughput), 4),
+                        MissedDeadlines = sessionResults.Count(r => r.IsMissedDeadline)
+                    });
+                }
+            }
+
+            var allSessionsList = userSessions.Select(s => new SessionDto
+            {
+                Id = s.Id,
+                Name = s.Name,
+                AlgorithmType = s.AlgorithmType,
+                TimeQuantum = s.TimeQuantum,
+                Status = s.Status,
+                IsPreemptive = s.IsPreemptive,
+                CreatedAt = s.CreatedAt
+            }).ToList();
 
             return new DashboardDto
             {
                 TotalSessions = totalSessions,
                 TotalProcesses = totalProcesses,
-                AllSessions = userSessions.Select(s => new SessionDto
-                {
-                    Id = s.Id,
-                    Name = s.Name,
-                    AlgorithmType = s.AlgorithmType,
-                    TimeQuantum = s.TimeQuantum,
-                    Status = s.Status,
-                    IsPreemptive = s.IsPreemptive,
-                    CreatedAt = s.CreatedAt
-                }).ToList()
+
+                CompletedProcesses = completedResults,
+                MissedDeadlines = missedDeadlines,
+                TotalExecutionTime = totalTime,
+                AverageWaitingTime = Math.Round(avgWaitingTime, 2),
+                AverageTurnaroundTime = Math.Round(avgTurnaroundTime, 2),
+                AverageResponseTime = Math.Round(avgResponseTime, 2),
+                CpuUtilization = Math.Round(avgCpuUtil, 2),
+                Throughput = Math.Round(avgThroughput, 4),
+                ContextSwitchCount = contextSwitches,
+                DeadlineSuccessRate = deadlineSuccess,
+
+                ProcessResults = processResults,
+                ProcessStatistics = processStats,
+                SessionPerformances = sessionPerformances,
+                AllSessions = allSessionsList
             };
         }
         catch (Exception ex)

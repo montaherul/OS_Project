@@ -9,6 +9,8 @@
     <title>@ViewData["Title"] - ERDRR</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/ERDRR.styles.css" asp-append-version="true" />
 </head>
@@ -31,6 +33,42 @@
                         </li>
                         @if (SignInManager.IsSignedIn(User))
                         {
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                        <i class="fas fa-shield-alt me-1"></i>Admin
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li>
+                                            <a class="dropdown-item" asp-area="Admin" asp-controller="AdminDashboard" asp-action="Index">
+                                                <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" asp-area="Admin" asp-controller="UserManagement" asp-action="Index">
+                                                <i class="fas fa-users-cog me-1"></i>User Management
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" asp-area="Admin" asp-controller="ProcessManagement" asp-action="Index">
+                                                <i class="fas fa-cogs me-1"></i>Process Management
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" asp-area="Admin" asp-controller="SessionManagement" asp-action="Index">
+                                                <i class="fas fa-layer-group me-1"></i>Session Management
+                                            </a>
+                                        </li>
+                                        <li><hr class="dropdown-divider" /></li>
+                                        <li>
+                                            <a class="dropdown-item" asp-area="Admin" asp-controller="ActivityLogs" asp-action="Index">
+                                                <i class="fas fa-history me-1"></i>Activity Logs
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </li>
+                            }
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="Dashboard" asp-action="Index">
                                     <i class="fas fa-tachometer-alt me-1"></i>Dashboard
@@ -143,6 +181,9 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

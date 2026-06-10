@@ -3,11 +3,12 @@
     ViewData["Title"] = "Dashboard";
     var stats = Model.Statistics;
     var hasSession = stats.SessionId > 0;
+    var hasResults = stats.ProcessResults.Any();
     var jsonSerializerOptions = new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase };
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2><i class="fas fa-tachometer-alt me-2"></i>Dashboard</h2>
+    <h2><i class="fas fa-tachometer-alt me-2"></i>@(Model.IsAdmin ? "Admin Dashboard" : "Dashboard")</h2>
     <div class="d-flex gap-2">
         <a asp-controller="Session" asp-action="Create" class="btn btn-primary">
             <i class="fas fa-plus me-1"></i>New Session
@@ -22,7 +23,7 @@
             <div class="col-md-8">
                 <label class="form-label fw-bold">Select Session to Analyze</label>
                 <select name="sessionId" class="form-select" onchange="this.form.submit()">
-                    <option value="">-- Select a Session --</option>
+                    <option value="">-- @(Model.IsAdmin ? "All Sessions (Global View)" : "Select a Session") --</option>
                     @if (stats.AllSessions != null)
                     {
                         @foreach (var session in stats.AllSessions)
@@ -108,11 +109,11 @@
             <div class="card-body">
                 <div class="d-flex justify-content-between">
                     <div>
-                        <h6 class="text-white-50">Completed</h6>
-                        <h2>@stats.CompletedProcesses</h2>
+                        <h6 class="text-white-50">@(hasSession || hasResults ? "Completed" : "Total Sessions")</h6>
+                        <h2>@(hasSession || hasResults ? stats.CompletedProcesses : stats.TotalSessions)</h2>
                     </div>
                     <div class="align-self-center">
-                        <i class="fas fa-check-circle fa-2x opacity-50"></i>
+                        <i class="fas fa-@(hasSession || hasResults ? "check-circle" : "layer-group") fa-2x opacity-50"></i>
                     </div>
                 </div>
             </div>
@@ -230,7 +231,7 @@
                 <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Process Statistics</h5>
             </div>
             <div class="card-body">
-                <canvas id="processChart" height="250"></canvas>
+                <canvas id="processChart"></canvas>
             </div>
         </div>
     </div>
@@ -240,7 +241,7 @@
                 <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Deadline Success Rate</h5>
             </div>
             <div class="card-body">
-                <canvas id="deadlineChart" height="250"></canvas>
+                <canvas id="deadlineChart"></canvas>
             </div>
         </div>
     </div>
@@ -254,7 +255,7 @@
                 <h5 class="mb-0"><i class="fas fa-clock me-2"></i>Waiting Time Analysis (per Process)</h5>
             </div>
             <div class="card-body">
-                <canvas id="waitingTimeChart" height="250"></canvas>
+                <canvas id="waitingTimeChart"></canvas>
             </div>
         </div>
     </div>
@@ -264,13 +265,13 @@
                 <h5 class="mb-0"><i class="fas fa-hourglass-half me-2"></i>Turnaround Time Analysis (per Process)</h5>
             </div>
             <div class="card-body">
-                <canvas id="turnaroundTimeChart" height="250"></canvas>
+                <canvas id="turnaroundTimeChart"></canvas>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Charts Row 3: Response Time + Context Switch -->
+<!-- Charts Row 3: Response Time + Session Comparison -->
 <div class="row g-4 mb-4">
     <div class="col-md-6">
         <div class="card border-0 shadow-sm">
@@ -278,7 +279,7 @@
                 <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Response Time Analysis (per Process)</h5>
             </div>
             <div class="card-body">
-                <canvas id="responseTimeChart" height="250"></canvas>
+                <canvas id="responseTimeChart"></canvas>
             </div>
         </div>
     </div>
@@ -288,7 +289,7 @@
                 <h5 class="mb-0"><i class="fas fa-exchange-alt me-2"></i>Session Comparison</h5>
             </div>
             <div class="card-body">
-                <canvas id="sessionComparisonChart" height="250"></canvas>
+                <canvas id="sessionComparisonChart"></canvas>
             </div>
         </div>
     </div>
@@ -302,14 +303,14 @@
                 <h5 class="mb-0"><i class="fas fa-tachometer-alt me-2"></i>Throughput Analysis (per Session)</h5>
             </div>
             <div class="card-body">
-                <canvas id="throughputChart" height="250"></canvas>
+                <canvas id="throughputChart"></canvas>
             </div>
         </div>
     </div>
 </div>
 
 <!-- Process Results Table -->
-@if (hasSession && stats.ProcessResults.Any())
+@if (hasResults)
 {
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-header bg-white">
@@ -434,156 +435,191 @@
         var processStats = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(stats.ProcessStatistics, jsonSerializerOptions));
         var sessionPerformances = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(stats.SessionPerformances, jsonSerializerOptions));
 
-        // 1. Process Statistics (Doughnut)
-        if (document.getElementById('processChart')) {
-            new Chart(document.getElementById('processChart').getContext('2d'), {
-                type: 'doughnut',
-                data: {
-                    labels: processStats.map(p => p.status),
-                    datasets: [{
-                        data: processStats.map(p => p.count),
-                        backgroundColor: ['#28a745', '#dc3545']
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom' } }
-                }
-            });
-        }
+        (function () {
+            function destroyChart(id) {
+                var existing = Chart.getChart(id);
+                if (existing) existing.destroy();
+            }
 
-        // 2. Deadline Success Rate (Doughnut)
-        if (document.getElementById('deadlineChart')) {
-            var completed = processResults.filter(p => !p.missedDeadline).length;
-            var missed = processResults.filter(p => p.missedDeadline).length;
-            new Chart(document.getElementById('deadlineChart').getContext('2d'), {
-                type: 'doughnut',
-                data: {
-                    labels: ['On Time', 'Missed Deadline'],
-                    datasets: [{
-                        data: [completed, missed],
-                        backgroundColor: ['#28a745', '#dc3545']
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom' } }
-                }
-            });
-        }
-
-        // 3. Waiting Time Analysis (Bar)
-        if (document.getElementById('waitingTimeChart')) {
-            new Chart(document.getElementById('waitingTimeChart').getContext('2d'), {
-                type: 'bar',
-                data: {
-                    labels: processResults.map(p => p.processName),
-                    datasets: [{
-                        label: 'Waiting Time',
-                        data: processResults.map(p => p.waitingTime),
-                        backgroundColor: processResults.map(p => p.missedDeadline ? 'rgba(220, 53, 69, 0.7)' : 'rgba(255, 193, 7, 0.7)')
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: { y: { beginAtZero: true } },
-                    plugins: { legend: { display: false } }
-                }
-            });
-        }
-
-        // 4. Turnaround Time Analysis (Bar)
-        if (document.getElementById('turnaroundTimeChart')) {
-            new Chart(document.getElementById('turnaroundTimeChart').getContext('2d'), {
-                type: 'bar',
-                data: {
-                    labels: processResults.map(p => p.processName),
-                    datasets: [{
-                        label: 'Turnaround Time',
-                        data: processResults.map(p => p.turnaroundTime),
-                        backgroundColor: processResults.map(p => p.missedDeadline ? 'rgba(220, 53, 69, 0.7)' : 'rgba(13, 110, 253, 0.7)')
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: { y: { beginAtZero: true } },
-                    plugins: { legend: { display: false } }
-                }
-            });
-        }
-
-        // 5. Response Time Analysis (Bar)
-        if (document.getElementById('responseTimeChart')) {
-            new Chart(document.getElementById('responseTimeChart').getContext('2d'), {
-                type: 'bar',
-                data: {
-                    labels: processResults.map(p => p.processName),
-                    datasets: [{
-                        label: 'Response Time',
-                        data: processResults.map(p => p.responseTime),
-                        backgroundColor: processResults.map(p => p.missedDeadline ? 'rgba(220, 53, 69, 0.7)' : 'rgba(23, 162, 184, 0.7)')
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: { y: { beginAtZero: true } },
-                    plugins: { legend: { display: false } }
-                }
-            });
-        }
-
-        // 6. Session Comparison (Grouped Bar)
-        if (document.getElementById('sessionComparisonChart')) {
-            new Chart(document.getElementById('sessionComparisonChart').getContext('2d'), {
-                type: 'bar',
-                data: {
-                    labels: sessionPerformances.map(s => s.sessionName),
-                    datasets: [
-                        {
-                            label: 'CPU Utilization %',
-                            data: sessionPerformances.map(s => s.cpuUtilization),
-                            backgroundColor: 'rgba(13, 110, 253, 0.7)'
+            // 1. Process Statistics (Doughnut)
+            if (processStats && processStats.length > 0) {
+                var ctx1 = document.getElementById('processChart');
+                if (ctx1) {
+                    destroyChart('processChart');
+                    new Chart(ctx1.getContext('2d'), {
+                        type: 'doughnut',
+                        data: {
+                            labels: processStats.map(p => p.status),
+                            datasets: [{
+                                data: processStats.map(p => p.count),
+                                backgroundColor: ['#28a745', '#dc3545']
+                            }]
                         },
-                        {
-                            label: 'Missed Deadlines',
-                            data: sessionPerformances.map(s => s.missedDeadlines),
-                            backgroundColor: 'rgba(220, 53, 69, 0.7)'
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { position: 'bottom' } }
                         }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: { y: { beginAtZero: true } },
-                    plugins: { legend: { position: 'bottom' } }
+                    });
                 }
-            });
-        }
+            }
 
-        // 7. Throughput Analysis (Bar)
-        if (document.getElementById('throughputChart')) {
-            new Chart(document.getElementById('throughputChart').getContext('2d'), {
-                type: 'bar',
-                data: {
-                    labels: sessionPerformances.map(s => s.sessionName),
-                    datasets: [{
-                        label: 'Throughput',
-                        data: sessionPerformances.map(s => s.throughput),
-                        backgroundColor: 'rgba(40, 167, 69, 0.7)'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: { y: { beginAtZero: true } },
-                    plugins: { legend: { display: false } }
+            // 2. Deadline Success Rate (Doughnut)
+            if (processResults && processResults.length > 0) {
+                var ctx2 = document.getElementById('deadlineChart');
+                if (ctx2) {
+                    destroyChart('deadlineChart');
+                    var completed = processResults.filter(p => !p.missedDeadline).length;
+                    var missed = processResults.filter(p => p.missedDeadline).length;
+                    new Chart(ctx2.getContext('2d'), {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['On Time', 'Missed Deadline'],
+                            datasets: [{
+                                data: [completed, missed],
+                                backgroundColor: ['#28a745', '#dc3545']
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { position: 'bottom' } }
+                        }
+                    });
                 }
-            });
-        }
+            }
+
+            // 3. Waiting Time Analysis (Bar)
+            if (processResults && processResults.length > 0) {
+                var ctx3 = document.getElementById('waitingTimeChart');
+                if (ctx3) {
+                    destroyChart('waitingTimeChart');
+                    new Chart(ctx3.getContext('2d'), {
+                        type: 'bar',
+                        data: {
+                            labels: processResults.map(p => p.processName),
+                            datasets: [{
+                                label: 'Waiting Time',
+                                data: processResults.map(p => p.waitingTime),
+                                backgroundColor: processResults.map(p => p.missedDeadline ? 'rgba(220, 53, 69, 0.7)' : 'rgba(255, 193, 7, 0.7)')
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: { y: { beginAtZero: true, title: { display: true, text: 'Time (units)' } } },
+                            plugins: { legend: { display: false } }
+                        }
+                    });
+                }
+            }
+
+            // 4. Turnaround Time Analysis (Bar)
+            if (processResults && processResults.length > 0) {
+                var ctx4 = document.getElementById('turnaroundTimeChart');
+                if (ctx4) {
+                    destroyChart('turnaroundTimeChart');
+                    new Chart(ctx4.getContext('2d'), {
+                        type: 'bar',
+                        data: {
+                            labels: processResults.map(p => p.processName),
+                            datasets: [{
+                                label: 'Turnaround Time',
+                                data: processResults.map(p => p.turnaroundTime),
+                                backgroundColor: processResults.map(p => p.missedDeadline ? 'rgba(220, 53, 69, 0.7)' : 'rgba(13, 110, 253, 0.7)')
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: { y: { beginAtZero: true, title: { display: true, text: 'Time (units)' } } },
+                            plugins: { legend: { display: false } }
+                        }
+                    });
+                }
+            }
+
+            // 5. Response Time Analysis (Bar)
+            if (processResults && processResults.length > 0) {
+                var ctx5 = document.getElementById('responseTimeChart');
+                if (ctx5) {
+                    destroyChart('responseTimeChart');
+                    new Chart(ctx5.getContext('2d'), {
+                        type: 'bar',
+                        data: {
+                            labels: processResults.map(p => p.processName),
+                            datasets: [{
+                                label: 'Response Time',
+                                data: processResults.map(p => p.responseTime),
+                                backgroundColor: processResults.map(p => p.missedDeadline ? 'rgba(220, 53, 69, 0.7)' : 'rgba(23, 162, 184, 0.7)')
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: { y: { beginAtZero: true, title: { display: true, text: 'Time (units)' } } },
+                            plugins: { legend: { display: false } }
+                        }
+                    });
+                }
+            }
+
+            // 6. Session Comparison (Grouped Bar)
+            if (sessionPerformances && sessionPerformances.length > 0) {
+                var ctx6 = document.getElementById('sessionComparisonChart');
+                if (ctx6) {
+                    destroyChart('sessionComparisonChart');
+                    new Chart(ctx6.getContext('2d'), {
+                        type: 'bar',
+                        data: {
+                            labels: sessionPerformances.map(s => s.sessionName),
+                            datasets: [
+                                {
+                                    label: 'CPU Utilization %',
+                                    data: sessionPerformances.map(s => s.cpuUtilization),
+                                    backgroundColor: 'rgba(13, 110, 253, 0.7)'
+                                },
+                                {
+                                    label: 'Missed Deadlines',
+                                    data: sessionPerformances.map(s => s.missedDeadlines),
+                                    backgroundColor: 'rgba(220, 53, 69, 0.7)'
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: { y: { beginAtZero: true } },
+                            plugins: { legend: { position: 'bottom' } }
+                        }
+                    });
+                }
+            }
+
+            // 7. Throughput Analysis (Bar)
+            if (sessionPerformances && sessionPerformances.length > 0) {
+                var ctx7 = document.getElementById('throughputChart');
+                if (ctx7) {
+                    destroyChart('throughputChart');
+                    new Chart(ctx7.getContext('2d'), {
+                        type: 'bar',
+                        data: {
+                            labels: sessionPerformances.map(s => s.sessionName),
+                            datasets: [{
+                                label: 'Throughput',
+                                data: sessionPerformances.map(s => s.throughput),
+                                backgroundColor: 'rgba(40, 167, 69, 0.7)'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: { y: { beginAtZero: true, title: { display: true, text: 'Processes/unit time' } } },
+                            plugins: { legend: { display: false } }
+                        }
+                    });
+                }
+            }
+        })();
     </script>
 }

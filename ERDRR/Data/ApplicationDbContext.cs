@@ -17,6 +17,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<SchedulingResult> SchedulingResults => Set<SchedulingResult>();
     public DbSet<ExecutionLog> ExecutionLogs => Set<ExecutionLog>();
     public DbSet<AlgorithmComparison> AlgorithmComparisons => Set<AlgorithmComparison>();
+    public DbSet<ActivityLog> ActivityLogs => Set<ActivityLog>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

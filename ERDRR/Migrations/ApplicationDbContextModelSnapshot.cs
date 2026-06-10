@@ -136,7 +136,7 @@ namespace ERDRR.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AlgorithmComparisons");
+                    b.ToTable("AlgorithmComparisons", (string)null);
                 });
 
             modelBuilder.Entity("ERDRR.Models.Entities.ApplicationUser", b =>
@@ -322,7 +322,7 @@ namespace ERDRR.Migrations
 
                     b.HasIndex("SchedulingSessionId");
 
-                    b.ToTable("ExecutionLogs");
+                    b.ToTable("ExecutionLogs", (string)null);
                 });
 
             modelBuilder.Entity("ERDRR.Models.Entities.ProcessEntity", b =>
@@ -383,7 +383,7 @@ namespace ERDRR.Migrations
                     b.HasIndex("SchedulingSessionId", "ProcessId")
                         .IsUnique();
 
-                    b.ToTable("Processes");
+                    b.ToTable("Processes", (string)null);
                 });
 
             modelBuilder.Entity("ERDRR.Models.Entities.SchedulingResult", b =>
@@ -466,7 +466,7 @@ namespace ERDRR.Migrations
 
                     b.HasIndex("SchedulingSessionId");
 
-                    b.ToTable("SchedulingResults");
+                    b.ToTable("SchedulingResults", (string)null);
                 });
 
             modelBuilder.Entity("ERDRR.Models.Entities.SchedulingSession", b =>
@@ -519,7 +519,7 @@ namespace ERDRR.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("SchedulingSessions");
+                    b.ToTable("SchedulingSessions", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>

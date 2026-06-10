@@ -28,11 +28,16 @@ public class DashboardController : Controller
     {
         try
         {
+            var isAdmin = User.IsInRole("Admin");
             DashboardDto data;
 
             if (sessionId.HasValue)
             {
                 data = await _dashboardService.GetDashboardDataForSessionAsync(sessionId.Value);
+            }
+            else if (isAdmin)
+            {
+                data = await _dashboardService.GetAdminDashboardDataAsync();
             }
             else
             {
@@ -45,7 +50,8 @@ public class DashboardController : Controller
             var viewModel = new DashboardViewModel
             {
                 Statistics = data,
-                SelectedSessionId = sessionId
+                SelectedSessionId = sessionId,
+                IsAdmin = isAdmin
             };
 
             return View(viewModel);

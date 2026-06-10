@@ -50,6 +50,12 @@ builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IComparisonService, ComparisonService>();
 
+builder.Services.AddScoped<IAdminRepository, AdminRepository>();
+builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<IAdminDashboardService, AdminDashboardService>();
+builder.Services.AddScoped<IActivityLogRepository, ActivityLogRepository>();
+builder.Services.AddScoped<IActivityLogService, ActivityLogService>();
+
 builder.Services.AddSingleton<SchedulingEngine>();
 
 builder.Services.AddControllersWithViews();
@@ -71,6 +77,9 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapControllerRoute(
+    name: "areas",
+    pattern: "{area:exists}/{controller=AdminDashboard}/{action=Index}/{id?}");
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");

@@ -44,6 +44,7 @@ public interface IDashboardService
     Task<DashboardDto> GetDashboardDataAsync();
     Task<DashboardDto> GetDashboardDataForSessionAsync(int sessionId);
     Task<DashboardDto> GetDashboardDataForUserAsync(string userId);
+    Task<DashboardDto> GetAdminDashboardDataAsync();
 }
 
 public interface IReportService
