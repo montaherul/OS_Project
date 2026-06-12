@@ -1,0 +1,74 @@
+@model EDFRR.Models.ViewModels.ProcessImportResult
+@{
+    ViewData["Title"] = "Import Results";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-header__title"><i class="fas fa-file-import me-2"></i>Import Results</h1>
+        <p class="page-header__subtitle">@Model.SessionName</p>
+    </div>
+</div>
+
+<div class="row justify-content-center animate-in">
+    <div class="col-lg-8">
+        <div class="card-edfrr mb-4">
+            <div class="card-edfrr__header" style="@(Model.HasErrors ? "border-left:3px solid var(--color-warning);" : "border-left:3px solid var(--color-success);")">
+                <h5><i class="fas @(Model.HasErrors ? "fa-exclamation-triangle" : "fa-check-circle") me-2" style="color:@(Model.HasErrors ? "var(--color-warning)" : "var(--color-success)");"></i>Import Summary</h5>
+            </div>
+            <div class="card-edfrr__body">
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <div class="metric-card">
+                            <div class="metric-card__label">Total Rows</div>
+                            <div class="metric-card__value mono">@Model.TotalRows</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="metric-card">
+                            <div class="metric-card__label">Imported</div>
+                            <div class="metric-card__value mono" style="color:var(--color-success);">@Model.ImportedRows</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="metric-card">
+                            <div class="metric-card__label">Failed</div>
+                            <div class="metric-card__value mono" style="color:var(--color-danger);">@Model.FailedRows</div>
+                        </div>
+                    </div>
+                </div>
+
+                @if (Model.HasErrors)
+                {
+                    <h6 style="font-size:13px;margin-bottom:var(--space-3);">Validation Errors</h6>
+                    <div class="edfrr-table-wrapper mb-4">
+                        <table class="edfrr-table">
+                            <thead>
+                                <tr><th>Row</th><th>Process Name</th><th>Errors</th></tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var error in Model.RowErrors)
+                                {
+                                    <tr style="background:var(--color-danger-alpha);">
+                                        <td><span class="mono">@error.RowNumber</span></td>
+                                        <td>@(string.IsNullOrEmpty(error.ProcessName) ? "(empty)" : error.ProcessName)</td>
+                                        <td style="font-size:12px;">@string.Join(" | ", error.Errors)</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+
+                <div class="d-flex gap-2">
+                    <a asp-area="" asp-action="Index" asp-route-sessionId="@Model.SchedulingSessionId" class="btn-primary">
+                        <i class="fas fa-list"></i> View All Processes
+                    </a>
+                    <a asp-area="" asp-action="Import" asp-route-sessionId="@Model.SchedulingSessionId" class="btn-ghost">
+                        <i class="fas fa-file-import"></i> Import More
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

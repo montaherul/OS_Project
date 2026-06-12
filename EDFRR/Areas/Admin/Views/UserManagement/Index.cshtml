@@ -1,0 +1,140 @@
+@model EDFRR.Models.ViewModels.UserManagementViewModel
+@{
+    ViewData["Title"] = "User Management";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-header__title"><i class="fas fa-users-cog me-2"></i>User Management</h1>
+        <p class="page-header__subtitle">@Model.Users.TotalCount total user@(Model.Users.TotalCount != 1 ? "s" : "")</p>
+    </div>
+    <div class="page-header__actions">
+        <a asp-action="Create" class="btn-primary">
+            <i class="fas fa-user-plus"></i> Add User
+        </a>
+    </div>
+</div>
+
+<div class="card-edfrr mb-4 animate-in">
+    <div class="card-edfrr__body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="edfrr-label">Search</label>
+                <input type="text" name="search" value="@Model.SearchTerm" class="edfrr-input" placeholder="Search by name or email..." />
+            </div>
+            <div class="col-md-2">
+                <label class="edfrr-label">Role</label>
+                <select name="role" class="edfrr-select">
+                    <option value="">All</option>
+                    @foreach (var r in Model.AvailableRoles) { <option value="@r" selected="@(Model.RoleFilter == r)">@r</option> }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="edfrr-label">Status</label>
+                <select name="status" class="edfrr-select">
+                    <option value="">All</option>
+                    @foreach (var s in Model.AvailableStatuses) { <option value="@s" selected="@(Model.StatusFilter == s)">@s</option> }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn-primary w-100"><i class="fas fa-search"></i> Filter</button>
+            </div>
+            <div class="col-md-1">
+                <a asp-action="Index" class="btn-ghost w-100"><i class="fas fa-times"></i></a>
+            </div>
+        </form>
+
+        @if (Model.SelectedUserIds.Any())
+        {
+            <div class="bulk-actions-bar mt-3">
+                <span class="bulk-actions-bar__count">@Model.SelectedUserIds.Count selected</span>
+                <div class="bulk-actions-bar__actions">
+                    <button type="submit" form="bulkForm" name="bulkAction" value="activate" class="btn-ghost btn-sm"><i class="fas fa-check-circle"></i> Activate</button>
+                    <button type="submit" form="bulkForm" name="bulkAction" value="deactivate" class="btn-ghost btn-sm"><i class="fas fa-pause-circle"></i> Deactivate</button>
+                    <button type="submit" form="bulkForm" name="bulkAction" value="delete" class="btn-danger btn-sm" onclick="return confirm('Delete selected users?')"><i class="fas fa-trash"></i> Delete</button>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="card-edfrr animate-in">
+    <div class="card-edfrr__body p-0">
+        <form id="bulkForm" asp-action="BulkAction" method="post">
+            @Html.AntiForgeryToken()
+            <div class="edfrr-table-wrapper">
+                <table class="edfrr-table">
+                    <thead>
+                        <tr>
+                            <th style="width:40px;"><input type="checkbox" id="selectAll" onchange="toggleAll(this)" /></th>
+                            <th><a asp-action="Index" asp-route-sortColumn="UserName" asp-route-sortDirection="@(Model.SortColumn == "UserName" && Model.SortDirection == "ASC" ? "DESC" : "ASC")">User</a></th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th style="width:120px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var u in Model.Users.Items)
+                        {
+                            <tr>
+                                <td><input type="checkbox" name="userIds" value="@u.UserId" class="user-checkbox" @(Model.SelectedUserIds.Contains(u.UserId) ? "checked" : "") /></td>
+                                <td><span class="mono">@u.UserName</span></td>
+                                <td style="font-size:12px;">@u.Email</td>
+                                <td><span class="badge-status" style="background:var(--color-primary-alpha);color:var(--color-primary);">@u.Roles</span></td>
+                                <td>
+                                    @switch (u.Status)
+                                    {
+                                        case "Active": <span class="badge-status badge-status--completed">Active</span>; break;
+                                        case "Inactive": <span class="badge-status badge-status--waiting">Inactive</span>; break;
+                                        case "Locked": <span class="badge-status badge-status--pending">Locked</span>; break;
+                                        default: <span class="badge-status badge-status--pending">@u.Status</span>; break;
+                                    }
+                                </td>
+                                <td style="font-size:12px;">@u.CreatedAt.ToString("MMM dd, yyyy")</td>
+                                <td>
+                                    <div class="d-flex gap-1">
+                                        <a asp-action="Edit" asp-route-id="@u.UserId" class="btn-ghost btn-icon btn-sm" title="Edit"><i class="fas fa-edit"></i></a>
+                                        <a asp-action="Details" asp-route-id="@u.UserId" class="btn-ghost btn-icon btn-sm" title="Details"><i class="fas fa-info-circle"></i></a>
+                                        <form asp-action="Delete" asp-route-id="@u.UserId" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn-danger btn-icon btn-sm" title="Delete" onclick="return confirm('Delete user &quot;@u.UserName&quot;?')"><i class="fas fa-trash"></i></button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </form>
+    </div>
+</div>
+
+@if (Model.Users.TotalPages > 1)
+{
+    <nav class="mt-4 d-flex justify-content-center animate-in">
+        <ul class="pagination pagination-sm">
+            @for (int i = 1; i <= Model.Users.TotalPages; i++)
+            {
+                <li class="page-item @(i == Model.Users.PageNumber ? "active" : "")">
+                    <a class="page-link" asp-action="Index" asp-route-page="@i" asp-route-search="@Model.SearchTerm" asp-route-role="@Model.RoleFilter" asp-route-status="@Model.StatusFilter">@i</a>
+                </li>
+            }
+        </ul>
+    </nav>
+}
+
+<div class="d-flex justify-content-end gap-2 mt-3 animate-in">
+    <a asp-action="Export" asp-route-format="csv" class="btn-ghost btn-sm"><i class="fas fa-file-csv"></i> Export CSV</a>
+    <a asp-action="Export" asp-route-format="json" class="btn-ghost btn-sm"><i class="fas fa-file-code"></i> Export JSON</a>
+</div>
+
+@section Scripts {
+    <script>
+        function toggleAll(master) {
+            document.querySelectorAll('.user-checkbox').forEach(function (cb) { cb.checked = master.checked; });
+        }
+    </script>
+}

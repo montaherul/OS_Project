@@ -1,0 +1,126 @@
+@model EDFRR.Models.ViewModels.ReportViewModel
+@{
+    ViewData["Title"] = "Reports";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-header__title"><i class="fas fa-file-alt me-2"></i>Reports</h1>
+        <p class="page-header__subtitle">View and generate scheduling session reports</p>
+    </div>
+</div>
+
+<div class="row g-4 animate-in">
+    <div class="col-12 col-lg-4">
+        <div class="card-edfrr">
+            <div class="card-edfrr__header">
+                <h5><i class="fas fa-list me-2"></i>Sessions</h5>
+            </div>
+            <div class="card-edfrr__body">
+                @if (Model.Sessions.Any())
+                {
+                    <div style="display:flex;flex-direction:column;gap:4px;">
+                        @foreach (var s in Model.Sessions)
+                        {
+                            <a asp-area="" asp-action="Index" asp-route-sessionId="@s.Id"
+                               class="d-flex justify-content-between align-items-center"
+                               style="background:@(Model.SelectedSessionId == s.Id ? "var(--color-primary-alpha)" : "var(--bg-elevated)");border:1px solid var(--border-subtle);border-radius:var(--radius-sm);padding:var(--space-3);text-decoration:none;color:var(--text-primary);">
+                                <div>
+                                    <div style="font-weight:500;font-size:13px;">@s.Name</div>
+                                    <small style="color:var(--text-muted);">@s.AlgorithmType &middot; @s.ProcessCount processes</small>
+                                </div>
+                                <span style="font-size:10px;color:var(--text-muted);white-space:nowrap;">@s.CreatedAt.ToString("MMM dd")</span>
+                            </a>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="empty-state" style="padding:var(--space-6) 0;">
+                        <div class="empty-state__icon"><i class="fas fa-inbox"></i></div>
+                        <div class="empty-state__title">No Sessions</div>
+                        <div class="empty-state__desc">Create a session first to see reports.</div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-8">
+        @if (Model.SelectedSessionId.HasValue && Model.Report != null)
+        {
+            var m = Model.Report.Metrics;
+            <div class="card-edfrr mb-4">
+                <div class="card-edfrr__header d-flex justify-content-between align-items-center">
+                    <h5><i class="fas fa-chart-bar me-2"></i>@Model.Report.SessionName - Summary</h5>
+                    <div class="d-flex gap-2">
+                        <a asp-area="" asp-action="Export" asp-route-sessionId="@Model.SelectedSessionId" asp-route-format="pdf" class="btn-ghost btn-sm"><i class="fas fa-file-pdf"></i> PDF</a>
+                        <a asp-area="" asp-action="Export" asp-route-sessionId="@Model.SelectedSessionId" asp-route-format="csv" class="btn-ghost btn-sm"><i class="fas fa-file-csv"></i> CSV</a>
+                    </div>
+                </div>
+                <div class="card-edfrr__body">
+                    <div class="row g-3 mb-4">
+                        <div class="col-4 col-md-3"><div class="metric-card"><div class="metric-card__label">Algorithm</div><div class="metric-card__value mono" style="font-size:18px;">@Model.Report.AlgorithmType</div></div></div>
+                        <div class="col-4 col-md-3"><div class="metric-card"><div class="metric-card__label">Total Processes</div><div class="metric-card__value mono" style="font-size:18px;">@m.TotalProcesses</div></div></div>
+                        <div class="col-4 col-md-3"><div class="metric-card"><div class="metric-card__label">Completed</div><div class="metric-card__value mono" style="font-size:18px;color:var(--color-success);">@m.CompletedProcesses</div></div></div>
+                        <div class="col-4 col-md-3"><div class="metric-card"><div class="metric-card__label">Avg. Turnaround</div><div class="metric-card__value mono" style="font-size:18px;">@m.AverageTurnaroundTime.ToString("F1")</div></div></div>
+                        <div class="col-4 col-md-3"><div class="metric-card"><div class="metric-card__label">Avg. Waiting</div><div class="metric-card__value mono" style="font-size:18px;">@m.AverageWaitingTime.ToString("F1")</div></div></div>
+                        <div class="col-4 col-md-3"><div class="metric-card"><div class="metric-card__label">Avg. Response</div><div class="metric-card__value mono" style="font-size:18px;">@m.AverageResponseTime.ToString("F1")</div></div></div>
+                        <div class="col-4 col-md-3"><div class="metric-card"><div class="metric-card__label">CPU Utilization</div><div class="metric-card__value mono" style="font-size:18px;">@m.CpuUtilization.ToString("F1")%</div></div></div>
+                        <div class="col-4 col-md-3"><div class="metric-card"><div class="metric-card__label">Deadline Misses</div><div class="metric-card__value mono" style="font-size:18px;color:@(m.MissedDeadlines > 0 ? "var(--color-danger)" : "var(--color-success)");">@m.MissedDeadlines</div></div></div>
+                    </div>
+
+                    <h6 style="font-size:13px;margin-bottom:var(--space-3);">Process Execution Details</h6>
+                    <div class="edfrr-table-wrapper">
+                        <table class="edfrr-table">
+                            <thead>
+                                <tr><th>Process</th><th>Burst</th><th>Arrival</th><th>Deadline</th><th>Completion</th><th>Turnaround</th><th>Waiting</th><th>Status</th></tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var p in Model.Report.Processes)
+                                {
+                                    <tr>
+                                        <td><span class="mono">@p.Name</span></td>
+                                        <td><span class="mono">@p.BurstTime</span></td>
+                                        <td><span class="mono">@p.ArrivalTime</span></td>
+                                        <td><span class="mono">@p.Deadline</span></td>
+                                        <td><span class="mono">@p.CompletionTime</span></td>
+                                        <td><span class="mono">@p.TurnaroundTime</span></td>
+                                        <td><span class="mono">@p.WaitingTime</span></td>
+                                        <td>
+                                            @if (p.MissedDeadline) { <span class="badge-status badge-status--pending">Missed</span> }
+                                            else { <span class="badge-status badge-status--completed">On Time</span> }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    @if (Model.Report.ExecutionLogs.Any())
+                    {
+                        <h6 style="font-size:13px;margin:var(--space-4) 0 var(--space-3);">Execution Log</h6>
+                        <div style="background:var(--bg-elevated);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:var(--space-3);max-height:300px;overflow-y:auto;font-size:11px;line-height:1.8;">
+                            @foreach (var log in Model.Report.ExecutionLogs)
+                            {
+                                <div><span class="mono" style="color:var(--text-muted);">[T=@log.TimeStep]</span> @log.Details</div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="card-edfrr">
+                <div class="card-edfrr__body">
+                    <div class="empty-state">
+                        <div class="empty-state__icon"><i class="fas fa-file-alt"></i></div>
+                        <div class="empty-state__title">Select a Session</div>
+                        <div class="empty-state__desc">Choose a session from the left panel to view its report.</div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

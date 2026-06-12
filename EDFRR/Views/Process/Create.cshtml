@@ -1,0 +1,70 @@
+@model EDFRR.Models.ViewModels.ProcessCreateViewModel
+@{
+    ViewData["Title"] = "Create Process";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-header__title"><i class="fas fa-plus me-2"></i>Create Process</h1>
+        <p class="page-header__subtitle">Add a new process to <span class="mono">@Model.SessionName</span></p>
+    </div>
+</div>
+
+<div class="row justify-content-center animate-in">
+    <div class="col-lg-8 col-xl-7">
+        <div class="card-edfrr">
+            <div class="card-edfrr__header">
+                <h5><i class="fas fa-microchip me-2"></i>Process Configuration</h5>
+            </div>
+            <div class="card-edfrr__body">
+                <form asp-area="" asp-action="Create" method="post">
+                    <input type="hidden" asp-for="SchedulingSessionId" />
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3" style="font-size:13px;"></div>
+
+                    <div class="mb-4">
+                        <label asp-for="Name" class="edfrr-label">Process Name <span style="color:var(--color-danger)">*</span></label>
+                        <input asp-for="Name" class="edfrr-input" placeholder="e.g., P1, DataProcessor" />
+                        <span asp-validation-for="Name" class="text-danger" style="font-size:12px;"></span>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label asp-for="BurstTime" class="edfrr-label">Burst Time <span style="color:var(--color-danger)">*</span></label>
+                            <input asp-for="BurstTime" class="edfrr-input mono" type="number" min="1" placeholder="e.g., 10" />
+                            <span asp-validation-for="BurstTime" class="text-danger" style="font-size:12px;"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="ArrivalTime" class="edfrr-label">Arrival Time</label>
+                            <input asp-for="ArrivalTime" class="edfrr-input mono" type="number" min="0" placeholder="e.g., 0" />
+                            <span asp-validation-for="ArrivalTime" class="text-danger" style="font-size:12px;"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="Deadline" class="edfrr-label">Deadline <span style="color:var(--color-danger)">*</span></label>
+                            <input asp-for="Deadline" class="edfrr-input mono" type="number" min="1" placeholder="e.g., 20" />
+                            <span asp-validation-for="Deadline" class="text-danger" style="font-size:12px;"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Priority" class="edfrr-label">Priority</label>
+                        <input asp-for="Priority" class="edfrr-input mono" type="number" min="0" max="10" placeholder="1" />
+                        <span asp-validation-for="Priority" class="text-danger" style="font-size:12px;"></span>
+                    </div>
+
+                    <div class="d-flex gap-2" style="border-top:1px solid var(--border-subtle);padding-top:var(--space-4);">
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-save"></i> Create Process
+                        </button>
+                        <a asp-area="" asp-action="Index" asp-route-sessionId="@Model.SchedulingSessionId" class="btn-ghost">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

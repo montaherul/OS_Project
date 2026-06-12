@@ -1,0 +1,4 @@
+﻿<Solution>
+  <Project Path="EDFRR/EDFRR.csproj" />
+  <Project Path="EDFRR.Tests/EDFRR.Tests.csproj" />
+</Solution>

@@ -1,0 +1,314 @@
+@model SimulationViewModel
+@{
+    ViewData["Title"] = $"Simulation - {Model.SessionName}";
+    var hasGantt = Model.GanttChart.Any();
+    var hasMetrics = Model.FinalMetrics != null;
+    var hasLogs = Model.ExecutionLogs.Any();
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-header__title">Simulation</h1>
+        <div class="page-header__subtitle">
+            @Model.SessionName � @Model.AlgorithmType � Quantum: @Model.TimeQuantum � Preemptive: @(Model.IsPreemptive ? "Yes" : "No")
+        </div>
+    </div>
+    <div class="page-header__actions">
+        <form asp-area="" asp-action="RunFull" asp-route-sessionId="@Model.SessionId" method="post">
+            <button type="submit" class="btn-primary">
+                <i class="fas fa-forward"></i> Run Full Simulation
+            </button>
+        </form>
+        <a asp-area="" asp-controller="Process" asp-action="Index" asp-route-sessionId="@Model.SessionId" class="btn-ghost">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+    </div>
+</div>
+
+@if (Model.Processes.Any())
+{
+    <div class="row g-4">
+        <!-- Gantt Chart -->
+        <div class="col-lg-8">
+            <div class="card-edfrr">
+                <div class="card-edfrr__header">
+                    <h5><i class="fas fa-chart-bar me-2"></i>Gantt Chart</h5>
+                    @if (hasGantt)
+                    {
+                        <div class="d-flex align-items-center gap-2">
+                            <button class="btn-ghost btn-sm" id="stepReset" title="Reset"><i class="fas fa-step-backward"></i></button>
+                            <button class="btn-ghost btn-sm" id="stepBack" title="Step Back"><i class="fas fa-chevron-left"></i></button>
+                            <button class="btn-primary btn-sm" id="playPause" title="Play/Pause">
+                                <i class="fas fa-play" id="playIcon"></i>
+                            </button>
+                            <button class="btn-ghost btn-sm" id="stepForward" title="Step Forward"><i class="fas fa-chevron-right"></i></button>
+                            <button class="btn-ghost btn-sm" id="stepEnd" title="Jump to End"><i class="fas fa-step-forward"></i></button>
+                            <span class="pid-tag" id="timeDisplay">t = 0</span>
+                        </div>
+                    }
+                </div>
+                <div class="card-edfrr__body">
+                    @if (hasGantt)
+                    {
+                        <div style="overflow-x:auto;min-height:100px;">
+                            <canvas id="ganttChart" height="150"></canvas>
+                        </div>
+                        <div class="progress mt-3" style="height:3px;">
+                            <div class="progress-bar" id="simProgress" role="progressbar" style="width:0%;background:var(--accent-primary);"></div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="empty-state">
+                            <div class="empty-state__icon"><i class="fas fa-chart-bar"></i></div>
+                            <div class="empty-state__title">No Gantt Data</div>
+                            <div class="empty-state__desc">Run the simulation to see the Gantt chart.</div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Execution Log -->
+            @if (hasLogs)
+            {
+                <div class="card-edfrr mt-4">
+                    <div class="card-edfrr__header">
+                        <h5><i class="fas fa-list-alt me-2"></i>Execution Log</h5>
+                    </div>
+                    <div class="card-edfrr__body p-0">
+                        <div style="max-height:300px;overflow-y:auto;">
+                            <table class="edfrr-table">
+                                <thead>
+                                    <tr>
+                                        <th>Time</th>
+                                        <th>Action</th>
+                                        <th>Process</th>
+                                        <th>Details</th>
+                                        <th>Ready Queue</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var log in Model.ExecutionLogs.OrderBy(l => l.TimeStep))
+                                    {
+                                        <tr class="@(log.Action == "Execute" ? "active" : "")">
+                                            <td class="mono">@log.TimeStep</td>
+                                            <td><partial name="_StatusBadge" model="@log.Action" /></td>
+                                            <td class="mono">@log.ProcessId</td>
+                                            <td><small>@log.Details</small></td>
+                                            <td><small class="text-muted">[@log.ReadyQueue]</small></td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Metrics Sidebar -->
+        <div class="col-lg-4">
+            <div class="card-edfrr">
+                <div class="card-edfrr__header">
+                    <h5><i class="fas fa-chart-pie me-2"></i>Metrics</h5>
+                </div>
+                <div class="card-edfrr__body">
+                    @if (hasMetrics)
+                    {
+                        <div class="d-flex flex-column gap-3">
+                            <div class="metric-card">
+                                <span class="section-label">Avg Waiting Time</span>
+                                <div class="metric-value">@Model.FinalMetrics.AverageWaitingTime.ToString("F2")<span class="metric-card__unit">ms</span></div>
+                            </div>
+                            <div class="metric-card">
+                                <span class="section-label">Avg Turnaround Time</span>
+                                <div class="metric-value">@Model.FinalMetrics.AverageTurnaroundTime.ToString("F2")<span class="metric-card__unit">ms</span></div>
+                            </div>
+                            <div class="metric-card">
+                                <span class="section-label">Avg Response Time</span>
+                                <div class="metric-value">@Model.FinalMetrics.AverageResponseTime.ToString("F2")<span class="metric-card__unit">ms</span></div>
+                            </div>
+                            <div class="metric-card">
+                                <span class="section-label">CPU Utilization</span>
+                                <div class="metric-value">@Model.FinalMetrics.CpuUtilization.ToString("F1")<span class="metric-card__unit">%</span></div>
+                            </div>
+                            <div class="metric-card">
+                                <span class="section-label">Throughput</span>
+                                <div class="metric-value">@Model.FinalMetrics.Throughput.ToString("F4")<span class="metric-card__unit"></span></div>
+                            </div>
+                            <div class="metric-card">
+                                <span class="section-label">Context Switches</span>
+                                <div class="metric-value">@Model.FinalMetrics.ContextSwitchCount<span class="metric-card__unit"></span></div>
+                            </div>
+                            <div class="metric-card">
+                                <span class="section-label">Missed Deadlines</span>
+                                <div class="metric-value" style="color:var(--color-danger);">@Model.FinalMetrics.MissedDeadlines<span class="metric-card__unit">/ @Model.FinalMetrics.TotalProcesses</span></div>
+                            </div>
+                            <div class="metric-card">
+                                <span class="section-label">Deadline Success</span>
+                                <div class="metric-value" style="color:var(--color-success);">@(100 - Model.FinalMetrics.DeadlineMissRatio)<span class="metric-card__unit">%</span></div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <canvas id="metricsChart" height="150"></canvas>
+                        </div>
+                        <div class="mt-4">
+                            <canvas id="deadlineChart" height="150"></canvas>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="empty-state">
+                            <div class="empty-state__icon"><i class="fas fa-chart-pie"></i></div>
+                            <div class="empty-state__title">No Metrics</div>
+                            <div class="empty-state__desc">Run simulation to see metrics.</div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Process Details -->
+            <div class="card-edfrr mt-4">
+                <div class="card-edfrr__header">
+                    <h5><i class="fas fa-list-alt me-2"></i>Processes</h5>
+                </div>
+                <div class="card-edfrr__body p-0">
+                    <table class="edfrr-table">
+                        <thead>
+                            <tr>
+                                <th>PID</th>
+                                <th>Name</th>
+                                <th>Arrival</th>
+                                <th>Burst</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.CurrentStep?.ProcessStates != null)
+                            {
+                                @foreach (var ps in Model.CurrentStep.ProcessStates)
+                                {
+                                    <tr class="@(ps.MissedDeadline ? "table-danger" : "")">
+                                        <td class="mono">@ps.ProcessId</td>
+                                        <td>@ps.ProcessName</td>
+                                        <td>@(Model.Processes.FirstOrDefault(p => p.ProcessId == ps.ProcessId)?.ArrivalTime)</td>
+                                        <td>@(Model.Processes.FirstOrDefault(p => p.ProcessId == ps.ProcessId)?.BurstTime)</td>
+                                        <td>
+                                            @if (ps.State == "Completed")
+                                            {
+                                                <span class="badge-status badge-status--completed">Done</span>
+                                            }
+                                            else if (ps.State == "Running")
+                                            {
+                                                <span class="badge-status badge-status--running">Running</span>
+                                            }
+                                            else if (ps.State == "Ready")
+                                            {
+                                                <span class="badge-status badge-status--waiting">Ready</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge-status badge-status--pending">@ps.State</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                @foreach (var p in Model.Processes)
+                                {
+                                    <tr>
+                                        <td class="mono">@p.ProcessId</td>
+                                        <td>@p.Name</td>
+                                        <td>@p.ArrivalTime</td>
+                                        <td>@p.BurstTime</td>
+                                        <td><span class="badge-status badge-status--pending">Pending</span></td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card-edfrr">
+        <div class="card-edfrr__body">
+            <div class="empty-state">
+                <div class="empty-state__icon"><i class="fas fa-exclamation-triangle" style="color:var(--color-warning);"></i></div>
+                <div class="empty-state__title">No Processes Found</div>
+                <div class="empty-state__desc">Add processes to this session before running the simulation.</div>
+                <a asp-area="" asp-controller="Process" asp-action="Create" asp-route-sessionId="@Model.SessionId" class="btn-primary">
+                    <i class="fas fa-plus"></i> Add Process
+                </a>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script src="~/js/edfrr-simulation.js"></script>
+    @if (hasGantt)
+    {
+        <script>
+            (function() {
+                var ganttData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.GanttChart));
+                renderGanttChart('ganttChart', ganttData);
+            })();
+        </script>
+    }
+    @if (hasMetrics)
+    {
+        <script>
+            (function() {
+                var metricsCtx = document.getElementById('metricsChart');
+                if (metricsCtx) {
+                    new Chart(metricsCtx.getContext('2d'), {
+                        type: 'bar',
+                        data: {
+                            labels: ['Waiting', 'Turnaround', 'Response'],
+                            datasets: [{
+                                label: 'Avg Time',
+                                data: [@Model.FinalMetrics.AverageWaitingTime, @Model.FinalMetrics.AverageTurnaroundTime, @Model.FinalMetrics.AverageResponseTime],
+                                backgroundColor: ['#F0A732', '#38BDF8', '#7C6EFA'],
+                                borderRadius: 4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false }, title: { display: true, text: 'Time Metrics', color: '#8892A8', font: { size: 12 } } },
+                            scales: { y: { beginAtZero: true, grid: { color: '#1E2638' } }, x: { grid: { display: false } } }
+                        }
+                    });
+                }
+
+                var deadlineCtx = document.getElementById('deadlineChart');
+                if (deadlineCtx) {
+                    new Chart(deadlineCtx.getContext('2d'), {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Completed', 'Missed Deadline'],
+                            datasets: [{
+                                data: [@Model.FinalMetrics.CompletedProcesses - @Model.FinalMetrics.MissedDeadlines, @Model.FinalMetrics.MissedDeadlines],
+                                backgroundColor: ['#2DD4A0', '#F05252'],
+                                borderWidth: 0
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            cutout: '70%',
+                            plugins: { legend: { position: 'bottom', labels: { usePointStyle: true } }, title: { display: true, text: 'Deadline Analysis', color: '#8892A8', font: { size: 12 } } }
+                        }
+                    });
+                }
+            })();
+        </script>
+    }
+}

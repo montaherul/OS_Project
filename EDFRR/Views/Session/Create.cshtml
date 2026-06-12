@@ -1,0 +1,76 @@
+@model EDFRR.Models.ViewModels.SessionCreateViewModel
+@{
+    ViewData["Title"] = "Create Session";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-header__title"><i class="fas fa-plus me-2"></i>Create Session</h1>
+        <p class="page-header__subtitle">Configure a new scheduling session</p>
+    </div>
+</div>
+
+<div class="row justify-content-center animate-in">
+    <div class="col-lg-8 col-xl-7">
+        <div class="card-edfrr">
+            <div class="card-edfrr__header">
+                <h5><i class="fas fa-cogs me-2"></i>Session Configuration</h5>
+            </div>
+            <div class="card-edfrr__body">
+                <form asp-area="" asp-action="Create" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3" style="font-size:13px;"></div>
+
+                    <div class="mb-4">
+                        <label asp-for="Name" class="edfrr-label">Session Name <span style="color:var(--color-danger)">*</span></label>
+                        <input asp-for="Name" class="edfrr-input" placeholder="e.g., Test Scenario 1" />
+                        <span asp-validation-for="Name" class="text-danger" style="font-size:12px;"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Description" class="edfrr-label">Description</label>
+                        <textarea asp-for="Description" class="edfrr-input" rows="3" placeholder="Optional description of this session"></textarea>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label asp-for="AlgorithmType" class="edfrr-label">Algorithm Type <span style="color:var(--color-danger)">*</span></label>
+                            <select asp-for="AlgorithmType" class="edfrr-select">
+                                <option value="Hybrid">Hybrid EDF + Round Robin</option>
+                                <option value="EDF">Earliest Deadline First (EDF)</option>
+                                <option value="RR">Round Robin (RR)</option>
+                            </select>
+                            <span asp-validation-for="AlgorithmType" class="text-danger" style="font-size:12px;"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="TimeQuantum" class="edfrr-label">Time Quantum</label>
+                            <input asp-for="TimeQuantum" class="edfrr-input" type="number" min="1" max="100" />
+                            <span asp-validation-for="TimeQuantum" class="text-danger" style="font-size:12px;"></span>
+                            <small style="font-size:11px;color:var(--text-muted);">Used by RR and Hybrid algorithms</small>
+                        </div>
+                    </div>
+
+                    <div class="mb-4" style="background:var(--bg-elevated);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:var(--space-4);">
+                        <div class="form-check form-switch">
+                            <input asp-for="IsPreemptive" class="form-check-input" />
+                            <label asp-for="IsPreemptive" class="form-check-label" style="font-weight:500;">Preemptive Mode</label>
+                        </div>
+                        <small style="font-size:11px;color:var(--text-muted);">Allow higher-priority processes to interrupt running processes</small>
+                    </div>
+
+                    <div class="d-flex gap-2" style="border-top:1px solid var(--border-subtle);padding-top:var(--space-4);">
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-save"></i> Create Session
+                        </button>
+                        <a asp-area="" asp-action="Index" class="btn-ghost">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

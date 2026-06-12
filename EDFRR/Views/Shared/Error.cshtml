@@ -1,0 +1,22 @@
+﻿@{
+    ViewData["Title"] = "Error";
+}
+
+<div class="row justify-content-center animate-in" style="margin-top:60px;">
+    <div class="col-md-6 text-center">
+        <div style="width:64px;height:64px;border-radius:50%;background:var(--color-danger-alpha);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+            <i class="fas fa-exclamation-triangle" style="color:var(--color-danger);font-size:28px;"></i>
+        </div>
+        <h2 style="font-size:24px;margin-bottom:8px;">Error</h2>
+        <p style="font-size:14px;color:var(--text-secondary);margin-bottom:16px;">An error occurred while processing your request.</p>
+        @if (Model?.RequestId != null)
+        {
+            <p style="font-size:12px;color:var(--text-muted);margin-bottom:24px;">
+                <strong>Request ID:</strong> <span class="mono">@Model.RequestId</span>
+            </p>
+        }
+        <a asp-area="" asp-controller="Home" asp-action="Index" class="btn-primary">
+            <i class="fas fa-home me-1"></i> Go Home
+        </a>
+    </div>
+</div>

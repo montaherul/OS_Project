@@ -1,0 +1,71 @@
+.card           { background: var(--bg-surface) !important; border-color: var(--border-subtle) !important; border-radius: var(--radius-lg) !important; box-shadow: var(--shadow-card) !important; }
+.card:hover { border-color: var(--border-strong) !important; }
+.table          { --bs-table-bg: transparent; --bs-table-hover-bg: var(--bg-overlay); color: var(--text-primary); }
+.table>:not(caption)>*>* { border-color: var(--border-subtle); background: transparent; }
+.table-hover tbody tr:hover { background: var(--bg-overlay) !important; }
+.form-control, .form-select {
+  background: var(--bg-elevated) !important;
+  border-color: var(--border-default) !important;
+  color: var(--text-primary) !important;
+  border-radius: var(--radius-sm) !important;
+}
+.form-control:focus, .form-select:focus {
+  background: var(--bg-elevated) !important;
+  border-color: var(--accent-primary) !important;
+  box-shadow: 0 0 0 3px var(--accent-primary-dim) !important;
+  color: var(--text-primary) !important;
+}
+.form-control::placeholder { color: var(--text-muted) !important; }
+.form-label { color: var(--text-secondary); font-size: 13px; font-weight: 500; margin-bottom: 6px; }
+.btn-primary    { background: var(--accent-primary) !important; border-color: var(--accent-primary) !important; }
+.btn-primary:hover { background: #6A5CE8 !important; border-color: #6A5CE8 !important; box-shadow: var(--accent-glow) !important; }
+.btn-outline-secondary { color: var(--text-secondary) !important; border-color: var(--border-default) !important; }
+.btn-outline-secondary:hover { background: var(--bg-elevated) !important; color: var(--text-primary) !important; border-color: var(--border-strong) !important; }
+.modal-content  { background: var(--bg-elevated) !important; border-color: var(--border-strong) !important; }
+.modal-header { border-color: var(--border-subtle) !important; }
+.modal-footer { border-color: var(--border-subtle) !important; }
+.dropdown-menu  { background: var(--bg-elevated) !important; border-color: var(--border-default) !important; }
+.dropdown-item  { color: var(--text-secondary) !important; }
+.dropdown-item:hover { background: var(--bg-overlay) !important; color: var(--text-primary) !important; }
+.nav-link       { color: var(--text-secondary) !important; }
+.nav-link:hover { color: var(--text-primary) !important; }
+.nav-link.active{ color: var(--accent-primary) !important; }
+body            { background: var(--bg-base) !important; color: var(--text-primary) !important; }
+.list-group-item { background: transparent !important; border-color: var(--border-subtle) !important; color: var(--text-primary) !important; }
+.list-group-item.active { background: var(--accent-primary-dim) !important; border-color: var(--accent-primary) !important; color: var(--accent-primary) !important; }
+.page-link { background: var(--bg-surface) !important; border-color: var(--border-subtle) !important; color: var(--text-secondary) !important; }
+.page-link:hover { background: var(--bg-elevated) !important; color: var(--text-primary) !important; }
+.page-item.active .page-link { background: var(--accent-primary) !important; border-color: var(--accent-primary) !important; color: #fff !important; }
+.alert { border-radius: var(--radius-md) !important; border: 1px solid var(--border-subtle) !important; }
+.alert-success { background: var(--color-success-dim) !important; color: var(--color-success) !important; }
+.alert-danger { background: var(--color-danger-dim) !important; color: var(--color-danger) !important; }
+.alert-warning { background: var(--color-warning-dim) !important; color: var(--color-warning) !important; }
+.alert-info { background: var(--color-info-dim) !important; color: var(--color-info) !important; }
+.bg-primary { background: var(--accent-primary) !important; }
+.bg-success { background: var(--color-success) !important; }
+.bg-warning { background: var(--color-warning) !important; }
+.bg-danger { background: var(--color-danger) !important; }
+.bg-info { background: var(--color-info) !important; }
+.text-primary { color: var(--accent-primary) !important; }
+.text-success { color: var(--color-success) !important; }
+.text-warning { color: var(--color-warning) !important; }
+.text-danger { color: var(--color-danger) !important; }
+.text-info { color: var(--color-info) !important; }
+.text-muted { color: var(--text-muted) !important; }
+.form-check-input { background: var(--bg-elevated) !important; border-color: var(--border-default) !important; }
+.form-check-input:checked { background: var(--accent-primary) !important; border-color: var(--accent-primary) !important; }
+.form-switch .form-check-input { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%238892A8'/%3e%3c/svg%3e") !important; }
+.form-switch .form-check-input:checked { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23fff'/%3e%3c/svg%3e") !important; }
+.progress { background: var(--bg-elevated) !important; }
+.tooltip-inner { background: var(--bg-elevated) !important; border: 1px solid var(--border-default) !important; color: var(--text-primary) !important; }
+.bs-tooltip-auto[data-popper-placement^=top] .tooltip-arrow::before { border-top-color: var(--border-default) !important; }
+
+.swal2-popup { background: var(--bg-elevated) !important; border: 1px solid var(--border-strong) !important; border-radius: var(--radius-lg) !important; }
+.swal2-title { color: var(--text-primary) !important; }
+.swal2-html-container { color: var(--text-secondary) !important; }
+.swal2-confirm { background: var(--accent-primary) !important; }
+.swal2-cancel { border-color: var(--border-default) !important; color: var(--text-secondary) !important; }
+
+.dataTables_wrapper .dataTables_filter input { background: var(--bg-elevated) !important; border: 1px solid var(--border-default) !important; color: var(--text-primary) !important; border-radius: var(--radius-sm) !important; }
+.dataTables_wrapper .dataTables_length select { background: var(--bg-elevated) !important; border: 1px solid var(--border-default) !important; color: var(--text-primary) !important; border-radius: var(--radius-sm) !important; }
+.dataTables_wrapper .dataTables_info { color: var(--text-muted) !important; }

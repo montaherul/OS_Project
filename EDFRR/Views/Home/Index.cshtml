@@ -1,0 +1,114 @@
+@{
+    ViewData["Title"] = "Home";
+}
+
+<div class="text-center animate-in" style="padding:60px 0 40px;">
+    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:16px;">
+        <polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5"/>
+        <line x1="12" y1="22" x2="12" y2="15.5"/>
+        <polyline points="22 8.5 12 15.5 2 8.5"/>
+    </svg>
+    <h1 style="font-size:36px;font-weight:700;margin-bottom:8px;">EDFRR</h1>
+    <p style="font-size:16px;color:var(--text-secondary);max-width:600px;margin:0 auto 32px;">
+        <strong>Adaptive Hybrid CPU Scheduling Framework for Real-Time Systems</strong>
+        &mdash; Simulate, analyze, and visualize real-time CPU scheduling using a hybrid algorithm
+        that combines <strong>Earliest Deadline First (EDF)</strong> and <strong>Round Robin (RR)</strong>.
+    </p>
+    <div class="d-flex justify-content-center gap-3">
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <a asp-area="" asp-controller="Dashboard" asp-action="Index" class="btn-primary btn-lg">
+                <i class="fas fa-tachometer-alt me-2"></i>Go to Dashboard
+            </a>
+            <a asp-area="" asp-controller="Session" asp-action="Create" class="btn-ghost btn-lg">
+                <i class="fas fa-plus me-2"></i>New Session
+            </a>
+        }
+        else
+        {
+            <a asp-area="Identity" asp-page="/Account/Login" class="btn-primary btn-lg">
+                <i class="fas fa-sign-in-alt me-2"></i>Get Started
+            </a>
+            <a asp-area="Identity" asp-page="/Account/Register" class="btn-ghost btn-lg">
+                <i class="fas fa-user-plus me-2"></i>Register
+            </a>
+        }
+    </div>
+</div>
+
+<div class="row g-4 mb-5 animate-in">
+    <div class="col-md-4">
+        <div class="card-edfrr h-100 text-center">
+            <div class="card-edfrr__body" style="padding:var(--space-5);">
+                <div style="width:48px;height:48px;border-radius:12px;background:var(--color-primary-alpha);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
+                    <i class="fas fa-cogs" style="color:var(--color-primary);font-size:20px;"></i>
+                </div>
+                <h5 style="font-size:15px;margin-bottom:8px;">Hybrid Scheduling</h5>
+                <p style="font-size:13px;color:var(--text-secondary);margin:0;">Combines EDF deadline-awareness with Round Robin fairness for optimal real-time scheduling.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card-edfrr h-100 text-center">
+            <div class="card-edfrr__body" style="padding:var(--space-5);">
+                <div style="width:48px;height:48px;border-radius:12px;background:var(--color-success-alpha);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
+                    <i class="fas fa-chart-line" style="color:var(--color-success);font-size:20px;"></i>
+                </div>
+                <h5 style="font-size:15px;margin-bottom:8px;">Real-Time Visualization</h5>
+                <p style="font-size:13px;color:var(--text-secondary);margin:0;">Interactive Gantt charts, performance metrics, and step-by-step execution simulation.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card-edfrr h-100 text-center">
+            <div class="card-edfrr__body" style="padding:var(--space-5);">
+                <div style="width:48px;height:48px;border-radius:12px;background:var(--color-info-alpha);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
+                    <i class="fas fa-file-alt" style="color:var(--color-info);font-size:20px;"></i>
+                </div>
+                <h5 style="font-size:15px;margin-bottom:8px;">Detailed Reports</h5>
+                <p style="font-size:13px;color:var(--text-secondary);margin:0;">Export PDF and Excel reports with comprehensive scheduling analysis and metrics.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-5 animate-in">
+    <div class="col-lg-6">
+        <div class="card-edfrr">
+            <div class="card-edfrr__header">
+                <h5><i class="fas fa-info-circle me-2"></i>Supported Algorithms</h5>
+            </div>
+            <div class="card-edfrr__body">
+                <div style="display:flex;flex-direction:column;gap:8px;">
+                    <div class="d-flex align-items-center gap-3" style="padding:var(--space-3);background:var(--bg-elevated);border-radius:var(--radius-sm);">
+                        <span class="badge-status badge-status--completed" style="font-size:10px;">EDF</span>
+                        <div><strong style="font-size:13px;">Earliest Deadline First</strong><p style="font-size:12px;color:var(--text-secondary);margin:2px 0 0;">Preemptive & Non-preemptive modes. Selects process with nearest deadline.</p></div>
+                    </div>
+                    <div class="d-flex align-items-center gap-3" style="padding:var(--space-3);background:var(--bg-elevated);border-radius:var(--radius-sm);">
+                        <span class="badge-status badge-status--running" style="font-size:10px;">RR</span>
+                        <div><strong style="font-size:13px;">Round Robin</strong><p style="font-size:12px;color:var(--text-secondary);margin:2px 0 0;">Time-quantum based fair scheduling with configurable quantum.</p></div>
+                    </div>
+                    <div class="d-flex align-items-center gap-3" style="padding:var(--space-3);background:var(--bg-elevated);border-radius:var(--radius-sm);">
+                        <span class="badge-status badge-status--waiting" style="font-size:10px;">Hybrid</span>
+                        <div><strong style="font-size:13px;">EDF + Round Robin</strong><p style="font-size:12px;color:var(--text-secondary);margin:2px 0 0;">Best of both: EDF priority with RR fairness for identical deadlines.</p></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card-edfrr">
+            <div class="card-edfrr__header">
+                <h5><i class="fas fa-calculator me-2"></i>Performance Metrics</h5>
+            </div>
+            <div class="card-edfrr__body">
+                <div class="row g-3">
+                    <div class="col-6"><div class="metric-card text-center"><div class="metric-card__label">Waiting Time</div><div class="metric-card__value" style="font-size:13px;">Time in ready queue</div></div></div>
+                    <div class="col-6"><div class="metric-card text-center"><div class="metric-card__label">Turnaround Time</div><div class="metric-card__value" style="font-size:13px;">Total time in system</div></div></div>
+                    <div class="col-6"><div class="metric-card text-center"><div class="metric-card__label">Response Time</div><div class="metric-card__value" style="font-size:13px;">Time to first execution</div></div></div>
+                    <div class="col-6"><div class="metric-card text-center"><div class="metric-card__label">CPU Utilization</div><div class="metric-card__value" style="font-size:13px;">Percentage CPU used</div></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

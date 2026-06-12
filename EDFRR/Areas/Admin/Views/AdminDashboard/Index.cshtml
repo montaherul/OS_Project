@@ -1,0 +1,214 @@
+@model EDFRR.Models.ViewModels.AdminDashboardViewModel
+@{
+    ViewData["Title"] = "Admin Dashboard";
+    var d = Model.Stats;
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-header__title"><i class="fas fa-shield-alt me-2"></i>Admin / Dashboard</h1>
+        <p class="page-header__subtitle">System overview and analytics</p>
+    </div>
+    <div class="page-header__actions">
+        <button class="btn-ghost" onclick="location.reload()">
+            <i class="fas fa-sync-alt"></i> Refresh
+        </button>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="metric-card animate-in">
+            <div class="metric-card__label">Total Users</div>
+            <div class="metric-card__value mono" id="statUsers">@d.TotalUsers</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="metric-card animate-in">
+            <div class="metric-card__label">Active Users</div>
+            <div class="metric-card__value mono">@d.ActiveUsers</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="metric-card animate-in">
+            <div class="metric-card__label">Total Sessions</div>
+            <div class="metric-card__value mono" id="statSessions">@d.TotalSessions</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="metric-card animate-in">
+            <div class="metric-card__label">Total Processes</div>
+            <div class="metric-card__value mono" id="statProcesses">@d.TotalProcesses</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-12 col-lg-8">
+        <div class="card-edfrr animate-in">
+            <div class="card-edfrr__header">
+                <h5><i class="fas fa-wave-square me-2"></i>Session Trends</h5>
+            </div>
+            <div class="card-edfrr__body">
+                <canvas id="chartTrends" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-lg-4">
+        <div class="card-edfrr animate-in">
+            <div class="card-edfrr__header">
+                <h5><i class="fas fa-chart-pie me-2"></i>Algorithm Usage</h5>
+            </div>
+            <div class="card-edfrr__body">
+                <canvas id="chartAlgoUsage" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-12 col-md-6">
+        <div class="card-edfrr animate-in">
+            <div class="card-edfrr__header">
+                <h5><i class="fas fa-users me-2"></i>Top Users by Process Count</h5>
+            </div>
+            <div class="card-edfrr__body p-0">
+                <div class="edfrr-table-wrapper">
+                    <table class="edfrr-table">
+                        <thead><tr><th>User</th><th>Processes</th></tr></thead>
+                        <tbody>
+                            @if (d.TopUsersByProcessCount.Any())
+                            {
+                                @foreach (var u in d.TopUsersByProcessCount)
+                                {
+                                    <tr><td><span class="mono">@u.UserName</span></td><td><span class="mono">@u.ProcessCount</span></td></tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr><td colspan="2" style="text-align:center;color:var(--text-muted);padding:var(--space-4);">No data</td></tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6">
+        <div class="card-edfrr animate-in">
+            <div class="card-edfrr__header">
+                <h5><i class="fas fa-file-alt me-2"></i>Recent Sessions</h5>
+            </div>
+            <div class="card-edfrr__body p-0">
+                <div class="edfrr-table-wrapper">
+                    <table class="edfrr-table">
+                        <thead><tr><th>Name</th><th>Algorithm</th><th>Created</th></tr></thead>
+                        <tbody>
+                            @if (d.RecentSessions.Any())
+                            {
+                                @foreach (var s in d.RecentSessions)
+                                {
+                                    <tr><td><span class="mono">@s.SessionName</span></td><td><span class="badge-status badge-status--running">@s.AlgorithmType</span></td><td style="font-size:12px;">@s.CreatedAt.ToString("MMM dd HH:mm")</td></tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr><td colspan="3" style="text-align:center;color:var(--text-muted);padding:var(--space-4);">No sessions</td></tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card-edfrr animate-in">
+    <div class="card-edfrr__header">
+        <h5><i class="fas fa-history me-2"></i>Recent Users</h5>
+    </div>
+    <div class="card-edfrr__body p-0">
+        <div class="edfrr-table-wrapper">
+            <table class="edfrr-table">
+                <thead><tr><th>User</th><th>Email</th><th>Role</th><th>Created</th></tr></thead>
+                <tbody>
+                    @if (d.RecentUsers.Any())
+                    {
+                        @foreach (var u in d.RecentUsers)
+                        {
+                            <tr>
+                                <td><span class="mono">@u.UserName</span></td>
+                                <td style="font-size:12px;">@u.Email</td>
+                                <td><span class="badge-status" style="background:var(--color-primary-alpha);color:var(--color-primary);">@u.Role</span></td>
+                                <td style="font-size:12px;">@u.CreatedAt.ToString("MMM dd HH:mm")</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:var(--space-4);">No recent users</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            animateValue('statUsers', 0, @d.TotalUsers, 800);
+            animateValue('statSessions', 0, @d.TotalSessions, 800);
+            animateValue('statProcesses', 0, @d.TotalProcesses, 800);
+
+            // Session Trends Chart
+            destroyChart('chartTrends');
+            var trendLabels = [];
+            var trendData = [];
+            @foreach (var t in d.SessionTrends) { <text>trendLabels.push('@t.Day.ToString("MMM dd")'); trendData.push(@t.Count);</text> }
+            if (trendLabels.length > 0) {
+                new Chart(document.getElementById('chartTrends'), {
+                    type: 'line',
+                    data: {
+                        labels: trendLabels,
+                        datasets: [{
+                            label: 'Sessions',
+                            data: trendData,
+                            borderColor: getComputedStyle(document.documentElement).getPropertyValue('--chart-1').trim(),
+                            backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--chart-1').trim() + '20',
+                            fill: true, tension: 0.3, pointRadius: 3
+                        }]
+                    },
+                    options: chartDefaults('Sessions')
+                });
+            }
+
+            // Algorithm Usage Chart
+            destroyChart('chartAlgoUsage');
+            var algoLabels = [];
+            var algoData = [];
+            @foreach (var a in d.AlgorithmUsage) { <text>algoLabels.push('@a.AlgorithmType'); algoData.push(@a.Count);</text> }
+            if (algoLabels.length > 0) {
+                new Chart(document.getElementById('chartAlgoUsage'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: algoLabels,
+                        datasets: [{
+                            data: algoData,
+                            backgroundColor: [
+                                getComputedStyle(document.documentElement).getPropertyValue('--chart-1').trim(),
+                                getComputedStyle(document.documentElement).getPropertyValue('--chart-2').trim(),
+                                getComputedStyle(document.documentElement).getPropertyValue('--chart-3').trim()
+                            ],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: true, cutout: '65%',
+                        plugins: { legend: { position: 'bottom', labels: { color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim(), padding: 16, font: { size: 11 } } } }
+                    }
+                });
+            }
+        });
+    </script>
+}

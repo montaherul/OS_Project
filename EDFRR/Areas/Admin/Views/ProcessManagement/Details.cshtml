@@ -1,0 +1,126 @@
+@model AdminProcessDetailDto
+@{
+    ViewData["Title"] = "Process Details";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-header__title"><i class="fas fa-info-circle me-2"></i>Process Details</h1>
+        <p class="page-header__subtitle"><span class="mono">@Model.ProcessName</span> (P@(Model.ProcessId))</p>
+    </div>
+    <div class="page-header__actions">
+        <a asp-action="Index" class="btn-ghost">
+            <i class="fas fa-arrow-left"></i> Back to List
+        </a>
+    </div>
+</div>
+
+<div class="row g-4 animate-in">
+    <div class="col-md-6">
+        <div class="card-edfrr h-100">
+            <div class="card-edfrr__header">
+                <h5><i class="fas fa-cog me-2"></i>Process Information</h5>
+            </div>
+            <div class="card-edfrr__body">
+                <table style="width:100%;font-size:13px;">
+                    <tbody>
+                        @foreach (var row in new[] {
+                            ("ID", Model.Id.ToString()),
+                            ("Process Name", Model.ProcessName),
+                            ("PID", $"P{Model.ProcessId}"),
+                            ("Arrival Time", Model.ArrivalTime.ToString()),
+                            ("Burst Time", Model.BurstTime.ToString()),
+                            ("Deadline", Model.Deadline.ToString()),
+                            ("Priority", Model.Priority.ToString()),
+                            ("Status", null as string)
+                        })
+                        {
+                            <tr>
+                                <td style="width:160px;padding:6px 0;color:var(--text-muted);">@row.Item1</td>
+                                <td style="padding:6px 0;">
+                                    @if (row.Item1 == "Status")
+                                    {
+                                        switch (Model.Status)
+                                        {
+                                            case "Pending": <span class="badge-status badge-status--waiting">Pending</span>; break;
+                                            case "Running": <span class="badge-status badge-status--running">Running</span>; break;
+                                            case "Completed": <span class="badge-status badge-status--completed">Completed</span>; break;
+                                            default: <span class="badge-status badge-status--pending">@Model.Status</span>; break;
+                                        }
+                                    }
+                                    else if (row.Item1 == "PID")
+                                    {
+                                        <span class="mono">@row.Item2</span>
+                                    }
+                                    else
+                                    {
+                                        <span>@row.Item2</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card-edfrr h-100">
+            <div class="card-edfrr__header">
+                <h5><i class="fas fa-user me-2"></i>User & Session</h5>
+            </div>
+            <div class="card-edfrr__body">
+                <table style="width:100%;font-size:13px;">
+                    <tbody>
+                        <tr><td style="width:160px;padding:6px 0;color:var(--text-muted);">Created By</td><td style="padding:6px 0;">@(Model.CreatedByName ?? "N/A")</td></tr>
+                        <tr><td style="padding:6px 0;color:var(--text-muted);">Email</td><td style="padding:6px 0;">@(Model.CreatedByEmail ?? "N/A")</td></tr>
+                        <tr><td style="padding:6px 0;color:var(--text-muted);">Session</td><td style="padding:6px 0;">@Model.SessionName</td></tr>
+                        <tr><td style="padding:6px 0;color:var(--text-muted);">Algorithm</td><td style="padding:6px 0;"><span class="badge-status badge-status--running">@Model.AlgorithmType</span></td></tr>
+                        <tr><td style="padding:6px 0;color:var(--text-muted);">Created At</td><td style="padding:6px 0;font-size:12px;">@Model.CreatedAt.ToString("MMM dd, yyyy HH:mm:ss")</td></tr>
+                        @if (Model.UpdatedAt.HasValue)
+                        {
+                            <tr><td style="padding:6px 0;color:var(--text-muted);">Updated At</td><td style="padding:6px 0;font-size:12px;">@Model.UpdatedAt.Value.ToString("MMM dd, yyyy HH:mm:ss")</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (Model.CompletionTime.HasValue)
+{
+    <div class="card-edfrr mt-4 animate-in">
+        <div class="card-edfrr__header">
+            <h5><i class="fas fa-chart-bar me-2"></i>Execution Results</h5>
+        </div>
+        <div class="card-edfrr__body">
+            <div class="row g-3">
+                <div class="col-6 col-md-3">
+                    <div class="metric-card">
+                        <div class="metric-card__label">Completion Time</div>
+                        <div class="metric-card__value mono">@Model.CompletionTime</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="metric-card">
+                        <div class="metric-card__label">Turnaround Time</div>
+                        <div class="metric-card__value mono">@Model.TurnaroundTime</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="metric-card">
+                        <div class="metric-card__label">Waiting Time</div>
+                        <div class="metric-card__value mono">@Model.WaitingTime</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="metric-card">
+                        <div class="metric-card__label">Response Time</div>
+                        <div class="metric-card__value mono">@Model.ResponseTime</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}

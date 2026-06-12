@@ -1,0 +1,13 @@
+@model string
+@{
+    var status = Model ?? "Pending";
+    var cls = status switch
+    {
+        "Completed" or "On Time" => "badge-status--completed",
+        "Running" => "badge-status--running",
+        "Waiting" or "Ready" or "Pending" => "badge-status--waiting",
+        "Missed" or "MissedDeadline" => "badge-status--missed",
+        _ => "badge-status--pending"
+    };
+}
+<span class="badge-status @cls">@status</span>

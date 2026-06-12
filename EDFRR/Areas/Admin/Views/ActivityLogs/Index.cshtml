@@ -1,0 +1,71 @@
+@model List<EDFRR.Models.DTOs.ActivityLogDto>
+@{
+    ViewData["Title"] = "Activity Logs";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-header__title"><i class="fas fa-history me-2"></i>Activity Logs</h1>
+        <p class="page-header__subtitle">@Model.Count total entr@(Model.Count != 1 ? "ies" : "y")</p>
+    </div>
+    <div class="page-header__actions">
+        <button class="btn-ghost" onclick="location.reload()">
+            <i class="fas fa-sync-alt"></i> Refresh
+        </button>
+    </div>
+</div>
+
+<div class="card-edfrr animate-in">
+    <div class="card-edfrr__body p-0">
+        @if (Model.Any())
+        {
+            <div class="edfrr-table-wrapper">
+                <table class="edfrr-table">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>User</th>
+                            <th>Action</th>
+                            <th>Details</th>
+                            <th>IP Address</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var a in Model)
+                        {
+                            <tr>
+                                <td style="white-space:nowrap;font-size:12px;">
+                                    <span class="mono">@a.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")</span>
+                                </td>
+                                <td><span class="mono">@a.UserName</span></td>
+                                <td>
+                                    @switch (a.Action)
+                                    {
+                                        case "Create": <span class="badge-status badge-status--completed">Create</span>; break;
+                                        case "Update": <span class="badge-status badge-status--running">Update</span>; break;
+                                        case "Delete": <span class="badge-status badge-status--pending">Delete</span>; break;
+                                        case "Login": <span class="badge-status badge-status--waiting">Login</span>; break;
+                                        case "Logout": <span class="badge-status badge-status--waiting">Logout</span>; break;
+                                        default: <span class="badge-status badge-status--waiting">@a.Action</span>; break;
+                                    }
+                                </td>
+                                <td style="font-size:12px;max-width:400px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                                    @a.Description
+                                </td>
+                                <td style="font-size:11px;color:var(--text-muted);font-family:var(--font-mono);">@a.IPAddress</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="empty-state" style="padding:var(--space-8) 0;">
+                <div class="empty-state__icon"><i class="fas fa-inbox"></i></div>
+                <div class="empty-state__title">No Activity Found</div>
+                <div class="empty-state__desc">No activity logs available yet.</div>
+            </div>
+        }
+    </div>
+</div>

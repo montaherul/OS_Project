@@ -1,0 +1,77 @@
+@model EditUserViewModel
+@{
+    ViewData["Title"] = "Edit User";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-header__title"><i class="fas fa-user-edit me-2"></i>Edit User</h1>
+        <p class="page-header__subtitle">@Model.Email</p>
+    </div>
+    <div class="page-header__actions">
+        <a asp-action="Details" asp-route-id="@Model.UserId" class="btn-ghost">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+    </div>
+</div>
+
+<div class="row animate-in">
+    <div class="col-lg-8">
+        <div class="card-edfrr">
+            <div class="card-edfrr__header">
+                <h5><i class="fas fa-user-cog me-2"></i>Edit User Information</h5>
+            </div>
+            <div class="card-edfrr__body">
+                <form method="post" asp-action="Edit">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="UserId" />
+                    <input type="hidden" asp-for="CurrentRole" />
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="FirstName" class="edfrr-label">First Name <span style="color:var(--color-danger)">*</span></label>
+                            <input asp-for="FirstName" class="edfrr-input" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="LastName" class="edfrr-label">Last Name <span style="color:var(--color-danger)">*</span></label>
+                            <input asp-for="LastName" class="edfrr-input" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Email" class="edfrr-label">Email <span style="color:var(--color-danger)">*</span></label>
+                            <input asp-for="Email" class="edfrr-input" type="email" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="PhoneNumber" class="edfrr-label">Phone Number</label>
+                            <input asp-for="PhoneNumber" class="edfrr-input" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="edfrr-label">Status</label>
+                            <div class="form-check form-switch mt-2">
+                                <input asp-for="IsActive" class="form-check-input" />
+                                <label class="form-check-label" style="font-weight:500;">Active</label>
+                            </div>
+                        </div>
+                        <div class="col-12" style="border-top:1px solid var(--border-subtle);padding-top:var(--space-4);">
+                            <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Save Changes</button>
+                            <a asp-action="Details" asp-route-id="@Model.UserId" class="btn-ghost ms-2">Cancel</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card-edfrr">
+            <div class="card-edfrr__header">
+                <h5><i class="fas fa-info-circle me-2"></i>User Info</h5>
+            </div>
+            <div class="card-edfrr__body">
+                <p class="mb-1" style="font-size:11px;color:var(--text-muted);">User ID</p>
+                <p><span class="mono" style="font-size:12px;">@Model.UserId</span></p>
+                <p class="mb-1" style="font-size:11px;color:var(--text-muted);">Current Role</p>
+                <p><span class="badge-status" style="background:var(--color-primary-alpha);color:var(--color-primary);">@Model.CurrentRole</span></p>
+            </div>
+        </div>
+    </div>
+</div>

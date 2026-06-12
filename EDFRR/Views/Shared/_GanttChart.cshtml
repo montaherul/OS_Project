@@ -1,0 +1,35 @@
+@model List<GanttChartDto>
+@{
+    var ganttId = "gantt-" + Guid.NewGuid().ToString("N").Substring(0, 8);
+}
+<div class="card-edfrr">
+    <div class="card-edfrr__header">
+        <h5><i class="fas fa-chart-bar me-2"></i>Gantt Chart</h5>
+    </div>
+    <div class="card-edfrr__body">
+        @if (Model != null && Model.Any())
+        {
+            <div style="overflow-x:auto;">
+                <canvas id="@ganttId" height="150"></canvas>
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">
+                <div class="empty-state__icon"><i class="fas fa-chart-bar"></i></div>
+                <div class="empty-state__title">No Gantt Data</div>
+                <div class="empty-state__desc">Run the simulation to see the Gantt chart.</div>
+            </div>
+        }
+    </div>
+</div>
+
+@if (Model != null && Model.Any())
+{
+    <script>
+        (function() {
+            var data = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model));
+            renderGanttChart('@ganttId', data);
+        })();
+    </script>
+}

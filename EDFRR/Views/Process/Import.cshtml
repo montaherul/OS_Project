@@ -1,0 +1,104 @@
+@model EDFRR.Models.ViewModels.ImportProcessViewModel
+@{
+    ViewData["Title"] = "Import Processes";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-header__title"><i class="fas fa-upload me-2"></i>Import Processes</h1>
+        <p class="page-header__subtitle">Bulk upload processes for <span class="mono">@Model.SessionName</span></p>
+    </div>
+</div>
+
+<div class="row animate-in">
+    <div class="col-lg-8">
+        <div class="card-edfrr mb-4">
+            <div class="card-edfrr__header">
+                <h5><i class="fas fa-file-upload me-2"></i>Upload File</h5>
+            </div>
+            <div class="card-edfrr__body">
+                <form asp-area="" asp-action="Import" method="post" enctype="multipart/form-data">
+                    <input type="hidden" asp-for="SchedulingSessionId" />
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3" style="font-size:13px;"></div>
+
+                    <div class="drop-zone" id="dropZone">
+                        <div class="drop-zone__icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                        <div class="drop-zone__title">Drag & drop your file here</div>
+                        <div class="drop-zone__desc">or click to browse</div>
+                        <input asp-for="File" class="drop-zone__input" accept=".csv,.json" />
+                        <span asp-validation-for="File" class="text-danger" style="font-size:12px;"></span>
+                    </div>
+
+                    <div id="file-info" class="mb-3" style="display:none;background:var(--bg-elevated);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:var(--space-3);">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fas fa-file" style="color:var(--color-primary);"></i>
+                            <span id="file-name" style="font-weight:500;"></span>
+                            <span id="file-size" style="font-size:12px;color:var(--text-muted);"></span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2" style="border-top:1px solid var(--border-subtle);padding-top:var(--space-4);">
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-upload"></i> Import
+                        </button>
+                        <a asp-area="" asp-action="Index" asp-route-sessionId="@Model.SchedulingSessionId" class="btn-ghost">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card-edfrr mb-4">
+            <div class="card-edfrr__header">
+                <h5><i class="fas fa-info-circle me-2"></i>Format Guide</h5>
+            </div>
+            <div class="card-edfrr__body">
+                <h6 style="font-size:13px;margin-bottom:var(--space-2);">CSV Format:</h6>
+                <pre style="background:var(--bg-elevated);padding:var(--space-3);border-radius:var(--radius-sm);font-size:11px;line-height:1.6;overflow-x:auto;color:var(--text-secondary);"><code>Name,ProcessId,BurstTime,ArrivalTime,Deadline,Priority
+P1,1,10,0,20,1
+P2,2,15,2,25,2</code></pre>
+
+                <h6 style="font-size:13px;margin:var(--space-3) 0 var(--space-2);">JSON Format:</h6>
+                <pre style="background:var(--bg-elevated);padding:var(--space-3);border-radius:var(--radius-sm);font-size:11px;line-height:1.6;overflow-x:auto;color:var(--text-secondary);"><code>[
+  {
+    "name": "P1",
+    "processId": 1,
+    "burstTime": 10,
+    "arrivalTime": 0,
+    "deadline": 20,
+    "priority": 1
+  }
+]</code></pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.querySelector('.drop-zone__input');
+        const fileInfo = document.getElementById('file-info');
+        const fileName = document.getElementById('file-name');
+        const fileSize = document.getElementById('file-size');
+
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drop-zone--active'); });
+        dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('drop-zone--active'); });
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drop-zone--active');
+            if (e.dataTransfer.files.length) { fileInput.files = e.dataTransfer.files; showFileInfo(e.dataTransfer.files[0]); }
+        });
+        fileInput.addEventListener('change', () => { if (fileInput.files.length) showFileInfo(fileInput.files[0]); });
+
+        function showFileInfo(file) {
+            fileInfo.style.display = 'block';
+            fileName.textContent = file.name;
+            fileSize.textContent = '(' + (file.size / 1024).toFixed(1) + ' KB)';
+        }
+    </script>
+}

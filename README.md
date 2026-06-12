@@ -1,8 +1,8 @@
-# ERDRR - Adaptive Hybrid CPU Scheduling Framework
+﻿# EDFRR - Adaptive Hybrid CPU Scheduling Framework
 
 ## Abstract
 
-ERDRR (Earliest Deadline First + Round Robin) is a web-based platform that simulates, analyzes, and visualizes real-time CPU scheduling using a hybrid algorithm that combines Earliest Deadline First (EDF) and Round Robin (RR) algorithms. The system allows users to create processes, run scheduling simulations, visualize execution using Gantt Charts, compare performance metrics, generate reports, and analyze scheduling efficiency.
+EDFRR (Earliest Deadline First + Round Robin) is a web-based platform that simulates, analyzes, and visualizes real-time CPU scheduling using a hybrid algorithm that combines Earliest Deadline First (EDF) and Round Robin (RR) algorithms. The system allows users to create processes, run scheduling simulations, visualize execution using Gantt Charts, compare performance metrics, generate reports, and analyze scheduling efficiency.
 
 ---
 
@@ -95,22 +95,22 @@ Existing CPU scheduling implementations often focus on a single algorithm, lacki
 The project follows **Clean Architecture** with the following layers:
 
 ```
-┌─────────────────────────────────┐
-│        Presentation Layer       │
-│   (Controllers, Views, JS)      │
-├─────────────────────────────────┤
-│         Service Layer           │
-│  (Business Logic, DTOs)         │
-├─────────────────────────────────┤
-│      Repository Layer           │
-│  (Data Access, EF Core)         │
-├─────────────────────────────────┤
-│      Scheduling Engine          │
-│  (EDF, RR, Hybrid Algorithms)   │
-├─────────────────────────────────┤
-│       Database Layer            │
-│     (SQL Server, Migrations)    │
-└─────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚        Presentation Layer       â”‚
+â”‚   (Controllers, Views, JS)      â”‚
+â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
+â”‚         Service Layer           â”‚
+â”‚  (Business Logic, DTOs)         â”‚
+â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
+â”‚      Repository Layer           â”‚
+â”‚  (Data Access, EF Core)         â”‚
+â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
+â”‚      Scheduling Engine          â”‚
+â”‚  (EDF, RR, Hybrid Algorithms)   â”‚
+â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
+â”‚       Database Layer            â”‚
+â”‚     (SQL Server, Migrations)    â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 ### Design Patterns Used
@@ -127,11 +127,11 @@ The project follows **Clean Architecture** with the following layers:
 ### Entity Relationship Diagram
 
 ```
-Users ──────< SchedulingSessions ──────< Processes
-                    │
-                    ├────< SchedulingResults
-                    │
-                    └────< ExecutionLogs
+Users â”€â”€â”€â”€â”€â”€< SchedulingSessions â”€â”€â”€â”€â”€â”€< Processes
+                    â”‚
+                    â”œâ”€â”€â”€â”€< SchedulingResults
+                    â”‚
+                    â””â”€â”€â”€â”€< ExecutionLogs
 ```
 
 ### Tables
@@ -208,28 +208,28 @@ Users ──────< SchedulingSessions ──────< Processes
 
 ```
 Start
-  │
-  ▼
+  â”‚
+  â–¼
 Arrive processes to Ready Queue
-  │
-  ▼
+  â”‚
+  â–¼
 Select process by EDF (earliest deadline)
-  │
-  ├── If unique deadline ──► Execute until completion or preemption
-  │
-  └── If multiple same deadlines ──► Apply Round Robin
-  │
-  ▼
+  â”‚
+  â”œâ”€â”€ If unique deadline â”€â”€â–º Execute until completion or preemption
+  â”‚
+  â””â”€â”€ If multiple same deadlines â”€â”€â–º Apply Round Robin
+  â”‚
+  â–¼
 Check completion
-  │
-  ├── Completed ──► Calculate metrics, terminate
-  │
-  └── Not completed ──► Back to Ready Queue
-  │
-  ▼
+  â”‚
+  â”œâ”€â”€ Completed â”€â”€â–º Calculate metrics, terminate
+  â”‚
+  â””â”€â”€ Not completed â”€â”€â–º Back to Ready Queue
+  â”‚
+  â–¼
 Check for missed deadlines
-  │
-  ▼
+  â”‚
+  â–¼
 Repeat until all processes complete
 ```
 
@@ -246,12 +246,12 @@ Repeat until all processes complete
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/ERDRR.git
-   cd ERDRR
+   git clone https://github.com/yourusername/EDFRR.git
+   cd EDFRR
    ```
 
 2. **Update connection string**
-   Edit `ERDRR/appsettings.json` and update the `DefaultConnection` string.
+   Edit `EDFRR/appsettings.json` and update the `DefaultConnection` string.
 
 3. **Restore packages**
    ```bash
@@ -260,20 +260,20 @@ Repeat until all processes complete
 
 4. **Apply migrations**
    ```bash
-   dotnet ef database update --project ERDRR
+   dotnet ef database update --project EDFRR
    ```
 
 5. **Run the application**
    ```bash
-   dotnet run --project ERDRR
+   dotnet run --project EDFRR
    ```
 
 6. **Access the application**
    Open `https://localhost:5001` in your browser.
 
 ### Default Credentials
-- **Admin:** admin@erdr.com
-- **User:** user@erdr.com
+- **Admin:** admin@edfrr.com
+- **User:** user@edfrr.com
 
 ---
 
@@ -292,7 +292,7 @@ Repeat until all processes complete
 
 ### Run Unit Tests
 ```bash
-dotnet test ERDRR.Tests
+dotnet test EDFRR.Tests
 ```
 
 ### Test Coverage
@@ -306,25 +306,25 @@ dotnet test ERDRR.Tests
 ## Project Structure
 
 ```
-ERDRR/
-├── ERDRR/                          # Main Web Project
-│   ├── Controllers/                # MVC Controllers
-│   ├── Models/
-│   │   ├── Entities/               # Database Entities
-│   │   ├── ViewModels/             # View Models
-│   │   └── DTOs/                   # Data Transfer Objects
-│   ├── Data/                       # DbContext & Migrations
-│   ├── Repositories/               # Data Access Layer
-│   ├── Services/                   # Business Logic Layer
-│   ├── Scheduling/                 # Scheduling Algorithms
-│   │   ├── Models/                 # PCB, GanttEntry, Metrics
-│   │   ├── Strategies/             # EDF, RR, Hybrid Implementations
-│   │   └── Engine/                 # Scheduling Engine
-│   ├── Views/                      # Razor Views
-│   ├── Areas/Identity/             # Identity Pages
-│   └── wwwroot/                    # Static Files
-├── ERDRR.Tests/                    # Unit Tests
-└── README.md
+EDFRR/
+â”œâ”€â”€ EDFRR/                          # Main Web Project
+â”‚   â”œâ”€â”€ Controllers/                # MVC Controllers
+â”‚   â”œâ”€â”€ Models/
+â”‚   â”‚   â”œâ”€â”€ Entities/               # Database Entities
+â”‚   â”‚   â”œâ”€â”€ ViewModels/             # View Models
+â”‚   â”‚   â””â”€â”€ DTOs/                   # Data Transfer Objects
+â”‚   â”œâ”€â”€ Data/                       # DbContext & Migrations
+â”‚   â”œâ”€â”€ Repositories/               # Data Access Layer
+â”‚   â”œâ”€â”€ Services/                   # Business Logic Layer
+â”‚   â”œâ”€â”€ Scheduling/                 # Scheduling Algorithms
+â”‚   â”‚   â”œâ”€â”€ Models/                 # PCB, GanttEntry, Metrics
+â”‚   â”‚   â”œâ”€â”€ Strategies/             # EDF, RR, Hybrid Implementations
+â”‚   â”‚   â””â”€â”€ Engine/                 # Scheduling Engine
+â”‚   â”œâ”€â”€ Views/                      # Razor Views
+â”‚   â”œâ”€â”€ Areas/Identity/             # Identity Pages
+â”‚   â””â”€â”€ wwwroot/                    # Static Files
+â”œâ”€â”€ EDFRR.Tests/                    # Unit Tests
+â””â”€â”€ README.md
 ```
 
 ---

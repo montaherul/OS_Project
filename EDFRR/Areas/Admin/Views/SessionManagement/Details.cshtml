@@ -1,0 +1,150 @@
+@model AdminSessionDetailDto
+@{
+    ViewData["Title"] = "Session Details";
+    var jsonOptions = new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase };
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-header__title"><i class="fas fa-info-circle me-2"></i>Session Details</h1>
+        <p class="page-header__subtitle">@Model.SessionName</p>
+    </div>
+    <div class="page-header__actions">
+        <a asp-action="Index" class="btn-ghost">
+            <i class="fas fa-arrow-left"></i> Back to List
+        </a>
+    </div>
+</div>
+
+<div class="row g-4 mb-4 animate-in">
+    <div class="col-md-6">
+        <div class="card-edfrr h-100">
+            <div class="card-edfrr__header">
+                <h5><i class="fas fa-cog me-2"></i>Session Information</h5>
+            </div>
+            <div class="card-edfrr__body">
+                <table style="width:100%;font-size:13px;">
+                    <tbody>
+                        <tr><td style="width:160px;padding:6px 0;color:var(--text-muted);">Name</td><td style="padding:6px 0;">@Model.SessionName</td></tr>
+                        <tr><td style="padding:6px 0;color:var(--text-muted);">Description</td><td style="padding:6px 0;">@(Model.Description ?? "N/A")</td></tr>
+                        <tr><td style="padding:6px 0;color:var(--text-muted);">Algorithm</td><td style="padding:6px 0;"><span class="badge-status badge-status--running">@Model.AlgorithmType</span></td></tr>
+                        <tr><td style="padding:6px 0;color:var(--text-muted);">Time Quantum</td><td style="padding:6px 0;"><span class="mono">@Model.TimeQuantum</span></td></tr>
+                        <tr><td style="padding:6px 0;color:var(--text-muted);">Preemptive</td><td style="padding:6px 0;">@(Model.IsPreemptive ? "Yes" : "No")</td></tr>
+                        <tr><td style="padding:6px 0;color:var(--text-muted);">Status</td><td style="padding:6px 0;"><span class="badge-status badge-status--@(Model.Status == "Completed" ? "completed" : Model.Status == "Running" ? "running" : "waiting")">@Model.Status</span></td></tr>
+                        <tr><td style="padding:6px 0;color:var(--text-muted);">Created By</td><td style="padding:6px 0;">@(Model.CreatedByName ?? "N/A")</td></tr>
+                        <tr><td style="padding:6px 0;color:var(--text-muted);">Created At</td><td style="padding:6px 0;font-size:12px;">@Model.CreatedAt.ToString("MMM dd, yyyy HH:mm:ss")</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card-edfrr h-100">
+            <div class="card-edfrr__header">
+                <h5><i class="fas fa-chart-bar me-2"></i>Performance Metrics</h5>
+            </div>
+            <div class="card-edfrr__body">
+                <div class="row g-3">
+                    <div class="col-6"><div class="metric-card"><div class="metric-card__label">CPU Utilization</div><div class="metric-card__value mono">@Model.CpuUtilization.ToString("F1")%</div></div></div>
+                    <div class="col-6"><div class="metric-card"><div class="metric-card__label">Throughput</div><div class="metric-card__value mono">@Model.Throughput.ToString("F2")</div></div></div>
+                    <div class="col-6"><div class="metric-card"><div class="metric-card__label">Avg Waiting</div><div class="metric-card__value mono">@Model.AverageWaitingTime.ToString("F1")</div></div></div>
+                    <div class="col-6"><div class="metric-card"><div class="metric-card__label">Avg Turnaround</div><div class="metric-card__value mono">@Model.AverageTurnaroundTime.ToString("F1")</div></div></div>
+                    <div class="col-6"><div class="metric-card"><div class="metric-card__label">Avg Response</div><div class="metric-card__value mono">@Model.AverageResponseTime.ToString("F1")</div></div></div>
+                    <div class="col-6"><div class="metric-card"><div class="metric-card__label">Context Switches</div><div class="metric-card__value mono">@Model.ContextSwitchCount</div></div></div>
+                    <div class="col-6"><div class="metric-card"><div class="metric-card__label">Total Processes</div><div class="metric-card__value mono">@Model.TotalProcesses</div></div></div>
+                    <div class="col-6"><div class="metric-card"><div class="metric-card__label">Deadline Miss</div><div class="metric-card__value mono" style="color:@(Model.DeadlineMissRatio > 50 ? "var(--color-danger)" : "var(--color-success)");">@Model.DeadlineMissRatio.ToString("F1")%</div></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (Model.GanttChart.Any())
+{
+    <div class="card-edfrr mb-4 animate-in">
+        <div class="card-edfrr__header">
+            <h5><i class="fas fa-chart-gantt me-2"></i>Gantt Chart</h5>
+        </div>
+        <div class="card-edfrr__body">
+            <div class="gantt-container" style="overflow-x:auto;position:relative;">
+                <div id="ganttChart" style="min-height:80px;position:relative;"></div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (Model.Processes.Any())
+{
+    <div class="card-edfrr animate-in">
+        <div class="card-edfrr__header">
+            <h5><i class="fas fa-list me-2"></i>Process Results (@Model.Processes.Count)</h5>
+        </div>
+        <div class="card-edfrr__body p-0">
+            <div class="edfrr-table-wrapper">
+                <table class="edfrr-table">
+                    <thead>
+                        <tr><th>PID</th><th>Name</th><th>Arrival</th><th>Burst</th><th>Deadline</th><th>Completion</th><th>WT</th><th>TAT</th><th>RT</th><th>Status</th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in Model.Processes)
+                        {
+                            <tr>
+                                <td><span class="mono">@p.ProcessId</span></td>
+                                <td>@p.ProcessName</td>
+                                <td><span class="mono">@p.ArrivalTime</span></td>
+                                <td><span class="mono">@p.BurstTime</span></td>
+                                <td><span class="mono">@p.Deadline</span></td>
+                                <td><span class="mono">@p.CompletionTime</span></td>
+                                <td><span class="mono">@p.WaitingTime</span></td>
+                                <td><span class="mono">@p.TurnaroundTime</span></td>
+                                <td><span class="mono">@p.ResponseTime</span></td>
+                                <td>
+                                    @if (p.IsMissedDeadline)
+                                    {
+                                        <span class="badge-status badge-status--pending">Missed</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge-status badge-status--completed">On Time</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card-edfrr animate-in">
+        <div class="card-edfrr__body">
+            <div class="empty-state">
+                <div class="empty-state__icon"><i class="fas fa-inbox"></i></div>
+                <div class="empty-state__title">No Simulation Results</div>
+                <div class="empty-state__desc">No simulation results available for this session.</div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        var ganttData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.GanttChart, jsonOptions));
+        if (ganttData && ganttData.length) {
+            var container = document.getElementById('ganttChart');
+            var maxEnd = Math.max.apply(null, ganttData.map(function(e) { return e.endTime; }));
+            var totalWidth = Math.max((maxEnd + 1) * 60, 600);
+            container.style.width = totalWidth + 'px';
+            var html = '<div style="display:flex;align-items:center;gap:2px;">';
+            ganttData.forEach(function(entry) {
+                var width = Math.max((entry.endTime - entry.startTime) * 60 - 2, 20);
+                var label = entry.processName || entry.processId;
+                html += '<div style="width:' + width + 'px;height:50px;background:' + entry.color + ';border-radius:4px;display:flex;align-items:center;justify-content:center;color:white;font-size:11px;font-weight:bold;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 4px;" title="' + label + ' (' + entry.startTime + '-' + entry.endTime + ')">' + label + '</div>';
+            });
+            html += '</div>';
+            container.innerHTML = html;
+        }
+    </script>
+}

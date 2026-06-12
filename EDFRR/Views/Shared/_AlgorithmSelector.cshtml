@@ -1,0 +1,20 @@
+@model string
+@{
+    var current = Model ?? "Hybrid";
+    var algorithms = new[] { "Hybrid", "EDF", "RR" };
+    var labels = new Dictionary<string, string> {
+        { "Hybrid", "⬡ Hybrid" },
+        { "EDF", "EDF" },
+        { "RR", "RR" }
+    };
+}
+<div class="pill-selector" id="algoSelector">
+    <div class="pill-selector__slider" style="width:33.33%;left:@(Array.IndexOf(algorithms, current) * 33.33)%;"></div>
+    @foreach (var algo in algorithms)
+    {
+        <button type="button" class="pill-selector__option @(algo == current ? "active" : "")"
+                data-algo="@algo">
+            @labels[algo]
+        </button>
+    }
+</div>

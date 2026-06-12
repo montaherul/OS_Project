@@ -1,0 +1,251 @@
+@model EDFRR.Models.ViewModels.DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-header__title"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</h1>
+        <p class="page-header__subtitle">
+            @if (Model.Statistics.SessionId > 0)
+            {
+                <span>Session: <span class="mono">@Model.Statistics.SessionName</span> (@Model.Statistics.AlgorithmType)</span>
+            }
+        </p>
+    </div>
+    <div class="page-header__actions">
+        @if (Model.Statistics.AllSessions.Any())
+        {
+            <form method="get" class="d-flex gap-2">
+                <select name="sessionId" class="edfrr-select" onchange="this.form.submit()" style="width:auto;">
+                    <option value="">All Sessions</option>
+                    @foreach (var s in Model.Statistics.AllSessions)
+                    {
+                        <option value="@s.Id" selected="@(s.Id == Model.SelectedSessionId)">@s.Name</option>
+                    }
+                </select>
+            </form>
+        }
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="metric-card animate-in">
+            <div class="metric-card__label">Total Sessions</div>
+            <div class="metric-card__value mono" id="statSessions">@Model.Statistics.TotalSessions</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="metric-card animate-in">
+            <div class="metric-card__label">Total Processes</div>
+            <div class="metric-card__value mono" id="statProcesses">@Model.Statistics.TotalProcesses</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="metric-card animate-in">
+            <div class="metric-card__label">Avg Waiting</div>
+            <div class="metric-card__value mono">@Model.Statistics.AverageWaitingTime.ToString("F1")</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="metric-card animate-in">
+            <div class="metric-card__label">CPU Utilization</div>
+            <div class="metric-card__value mono">@Model.Statistics.CpuUtilization.ToString("F1")%</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-12 col-lg-6">
+        <div class="card-edfrr animate-in">
+            <div class="card-edfrr__header">
+                <h5><i class="fas fa-chart-bar me-2"></i>Process Status Distribution</h5>
+            </div>
+            <div class="card-edfrr__body">
+                <canvas id="chartProcessStatus" height="240"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-lg-6">
+        <div class="card-edfrr animate-in">
+            <div class="card-edfrr__header">
+                <h5><i class="fas fa-chart-bar me-2"></i>Session Comparison</h5>
+            </div>
+            <div class="card-edfrr__body">
+                <canvas id="chartSessionComparison" height="240"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card-edfrr animate-in mb-4">
+    <div class="card-edfrr__header">
+        <h5><i class="fas fa-file-alt me-2"></i>Process Results</h5>
+    </div>
+    <div class="card-edfrr__body p-0">
+        @if (Model.Statistics.ProcessResults.Any())
+        {
+            <div class="edfrr-table-wrapper">
+                <table class="edfrr-table">
+                    <thead>
+                        <tr><th>Process</th><th>Burst</th><th>Arrival</th><th>Deadline</th><th>Completion</th><th>WT</th><th>TAT</th><th>RT</th><th>Status</th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in Model.Statistics.ProcessResults)
+                        {
+                            <tr>
+                                <td><span class="mono">@p.ProcessName</span></td>
+                                <td><span class="mono">@p.BurstTime</span></td>
+                                <td><span class="mono">@p.ArrivalTime</span></td>
+                                <td><span class="mono">@p.Deadline</span></td>
+                                <td><span class="mono">@p.CompletionTime</span></td>
+                                <td><span class="mono">@p.WaitingTime</span></td>
+                                <td><span class="mono">@p.TurnaroundTime</span></td>
+                                <td><span class="mono">@p.ResponseTime</span></td>
+                                <td>
+                                    @if (p.MissedDeadline)
+                                    {
+                                        <span class="badge-status badge-status--pending">Missed</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge-status badge-status--completed">On Time</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div style="padding:var(--space-6);text-align:center;color:var(--text-muted);font-size:13px;">No process results available.</div>
+        }
+    </div>
+</div>
+
+@if (!Model.SelectedSessionId.HasValue && Model.RecentSessions.Any())
+{
+    <div class="card-edfrr animate-in">
+        <div class="card-edfrr__header">
+            <h5><i class="fas fa-history me-2"></i>Recent Sessions</h5>
+        </div>
+        <div class="card-edfrr__body p-0">
+            <div class="edfrr-table-wrapper">
+                <table class="edfrr-table">
+                    <thead>
+                        <tr><th>Name</th><th>Algorithm</th><th>Processes</th><th>Created</th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var s in Model.RecentSessions)
+                        {
+                            <tr>
+                                <td><a asp-area="" asp-controller="Dashboard" asp-route-sessionId="@s.Id" style="color:var(--color-primary);text-decoration:none;font-weight:500;">@s.Name</a></td>
+                                <td><span class="badge-status badge-status--running">@s.AlgorithmType</span></td>
+                                <td><span class="mono">@s.ProcessCount</span></td>
+                                <td style="font-size:12px;">@s.CreatedAt.ToString("MMM dd, yyyy")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+
+@if (Model.Statistics.SessionPerformances.Any())
+{
+    <div class="card-edfrr animate-in">
+        <div class="card-edfrr__header">
+            <h5><i class="fas fa-balance-scale me-2"></i>Session Performance Comparison</h5>
+        </div>
+        <div class="card-edfrr__body p-0">
+            <div class="edfrr-table-wrapper">
+                <table class="edfrr-table">
+                    <thead>
+                        <tr><th>Session</th><th>Algorithm</th><th>CPU Util</th><th>Throughput</th><th>Missed</th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var sp in Model.Statistics.SessionPerformances)
+                        {
+                            <tr>
+                                <td>@sp.SessionName</td>
+                                <td><span class="badge-status badge-status--running">@sp.AlgorithmType</span></td>
+                                <td><span class="mono">@sp.CpuUtilization.ToString("F1")%</span></td>
+                                <td><span class="mono">@sp.Throughput.ToString("F2")</span></td>
+                                <td><span class="mono" style="color:var(--color-danger);">@sp.MissedDeadlines</span></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Animate metrics
+            var statSessions = document.getElementById('statSessions');
+            var statProcesses = document.getElementById('statProcesses');
+            if (statSessions) animateValue('statSessions', 0, @Model.Statistics.TotalSessions, 800);
+            if (statProcesses) animateValue('statProcesses', 0, @Model.Statistics.TotalProcesses, 800);
+
+            // Process Status Chart
+            destroyChart('chartProcessStatus');
+            var statusLabels = [];
+            var statusData = [];
+            @if (Model.Statistics.ProcessStatistics.Any())
+            {
+                @foreach (var ps in Model.Statistics.ProcessStatistics)
+                {
+                    <text>statusLabels.push('@ps.Status'); statusData.push(@ps.Count);</text>
+                }
+            }
+            else
+            {
+                <text>statusLabels.push('No Data'); statusData.push(1);</text>
+            }
+            var colors = [getComputedStyle(document.documentElement).getPropertyValue('--chart-1').trim(),
+                          getComputedStyle(document.documentElement).getPropertyValue('--chart-2').trim(),
+                          getComputedStyle(document.documentElement).getPropertyValue('--chart-3').trim(),
+                          getComputedStyle(document.documentElement).getPropertyValue('--chart-4').trim()];
+            new Chart(document.getElementById('chartProcessStatus'), {
+                type: 'doughnut',
+                data: { labels: statusLabels, datasets: [{ data: statusData, backgroundColor: colors.slice(0, statusLabels.length), borderWidth: 0 }] },
+                options: {
+                    responsive: true, maintainAspectRatio: true, cutout: '65%',
+                    plugins: { legend: { position: 'bottom', labels: { color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim(), padding: 16, font: { size: 11 } } } }
+                }
+            });
+
+            // Session Comparison Chart
+            destroyChart('chartSessionComparison');
+            var compLabels = [];
+            var compCpu = [];
+            var compTput = [];
+            @foreach (var sp in Model.Statistics.SessionPerformances)
+            {
+                <text>compLabels.push('@sp.SessionName'); compCpu.push(@sp.CpuUtilization); compTput.push(@sp.Throughput);</text>
+            }
+            if (compLabels.length > 0) {
+                new Chart(document.getElementById('chartSessionComparison'), {
+                    type: 'bar',
+                    data: {
+                        labels: compLabels,
+                        datasets: [
+                            { label: 'CPU Util %', data: compCpu, backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--chart-1').trim() + '80', borderRadius: 4 },
+                            { label: 'Throughput', data: compTput, backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--chart-2').trim() + '80', borderRadius: 4 }
+                        ]
+                    },
+                    options: chartDefaults('Value')
+                });
+            } else {
+                document.getElementById('chartSessionComparison').parentElement.innerHTML = '<div style="text-align:center;padding:40px 0;color:var(--text-muted);font-size:13px;">Select a session to see comparison data.</div>';
+            }
+        });
+    </script>
+}

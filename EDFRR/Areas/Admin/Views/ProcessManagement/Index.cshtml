@@ -1,0 +1,170 @@
+@{
+    ViewData["Title"] = "Process Management";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-header__title"><i class="fas fa-tasks me-2"></i>Process Management</h1>
+        <p class="page-header__subtitle" id="showingInfo"></p>
+    </div>
+    <div class="page-header__actions">
+        <a href="@Url.Action("ExportExcel")" class="btn-ghost btn-sm" id="btnExportExcel"><i class="fas fa-file-excel"></i> Excel</a>
+        <a href="@Url.Action("ExportPdf")" class="btn-ghost btn-sm" id="btnExportPdf"><i class="fas fa-file-pdf"></i> PDF</a>
+    </div>
+</div>
+
+<div class="card-edfrr mb-4 animate-in">
+    <div class="card-edfrr__body">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="edfrr-label">Search</label>
+                <input type="text" class="edfrr-input" placeholder="Name, PID..." id="searchInput" />
+            </div>
+            <div class="col-md-2">
+                <label class="edfrr-label">User</label>
+                <select class="edfrr-select" id="userFilter"><option value="">All Users</option></select>
+            </div>
+            <div class="col-md-2">
+                <label class="edfrr-label">Status</label>
+                <select class="edfrr-select" id="statusFilter"><option value="">All Status</option></select>
+            </div>
+            <div class="col-md-2">
+                <label class="edfrr-label">Date From</label>
+                <input type="date" class="edfrr-input" id="dateFrom" />
+            </div>
+            <div class="col-md-2">
+                <label class="edfrr-label">Date To</label>
+                <input type="date" class="edfrr-input" id="dateTo" />
+            </div>
+            <div class="col-md-1">
+                <button type="button" class="btn-primary w-100" id="btnSearch"><i class="fas fa-search"></i></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card-edfrr mb-4 animate-in">
+    <div class="card-edfrr__body">
+        <div class="bulk-actions-bar">
+            <span class="bulk-actions-bar__count"><span id="selectedCount">0</span> selected</span>
+            <div class="bulk-actions-bar__actions">
+                <button type="button" class="btn-danger btn-sm" id="btnBulkDelete" disabled>
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card-edfrr animate-in">
+    <div class="card-edfrr__body p-0">
+        <div class="edfrr-table-wrapper">
+            <table id="processesTable" class="edfrr-table" style="width:100%">
+                <thead>
+                    <tr>
+                        <th style="width:40px;"><input type="checkbox" id="selectAll" class="form-check-input" /></th>
+                        <th data-sort="processName">Process Name</th>
+                        <th>PID</th>
+                        <th data-sort="arrivalTime">Arrival</th>
+                        <th data-sort="burstTime">Burst</th>
+                        <th>Deadline</th>
+                        <th>Priority</th>
+                        <th data-sort="status">Status</th>
+                        <th>User</th>
+                        <th data-sort="createdAt">Created</th>
+                        <th style="width:100px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="processesBody"></tbody>
+            </table>
+        </div>
+        <div id="loadingSpinner" class="text-center py-5">
+            <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
+            <p class="text-muted mt-2 mb-0">Loading processes...</p>
+        </div>
+        <div id="emptyState" class="text-center py-5 d-none">
+            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+            <p class="text-muted mb-0">No processes found.</p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            var table = null, selectedIds = new Set(), baseUrl = '@Url.Action("Index")' + '/';
+            function getAjaxUrl() { return '@Url.Action("GetProcesses")'; }
+            function initTable() {
+                table = $('#processesTable').DataTable({
+                    processing: true, serverSide: true, pageLength: 10,
+                    lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+                    ajax: {
+                        url: getAjaxUrl(), type: 'GET',
+                        data: function (d) {
+                            d.search = $('#searchInput').val();
+                            d.userFilter = $('#userFilter').val();
+                            d.statusFilter = $('#statusFilter').val();
+                            d.dateFrom = $('#dateFrom').val() ? new Date($('#dateFrom').val()).toISOString() : null;
+                            d.dateTo = $('#dateTo').val() ? new Date($('#dateTo').val() + 'T23:59:59').toISOString() : null;
+                            var colMap = { 1: 'processName', 3: 'arrivalTime', 4: 'burstTime', 7: 'status', 9: 'createdAt' };
+                            var colIdx = d.order && d.order.length ? d.order[0].column : 9;
+                            d.sortColumn = colMap[colIdx] || 'createdAt';
+                            d.sortDirection = d.order && d.order[0] && d.order[0].dir === 'asc' ? 'ASC' : 'DESC';
+                        },
+                        beforeSend: function () { $('#loadingSpinner').removeClass('d-none'); $('#processesTable').css('opacity', '0.5'); },
+                        complete: function () { $('#loadingSpinner').addClass('d-none'); $('#processesTable').css('opacity', '1'); updateShowingInfo(); updateExportLinks(); }
+                    },
+                    columns: [
+                        { data: 'id', orderable: false, searchable: false, render: function (d) { return '<input type="checkbox" class="form-check-input process-checkbox" value="' + d + '" />'; } },
+                        { data: 'processName', render: function (d) { return escapeHtml(d || ''); } },
+                        { data: 'processId', render: function (d) { return '<span class="mono">' + escapeHtml(d || '') + '</span>'; } },
+                        { data: 'arrivalTime' }, { data: 'burstTime' }, { data: 'deadline' }, { data: 'priority' },
+                        { data: 'status', render: function (d) { return '<span class="badge-status badge-status--' + (d === 'Completed' ? 'completed' : d === 'Running' ? 'running' : d === 'Pending' ? 'waiting' : 'pending') + '">' + escapeHtml(d) + '</span>'; } },
+                        { data: 'createdByName', defaultContent: 'N/A', render: function (d) { return escapeHtml(d || 'N/A'); } },
+                        { data: 'createdAt', render: function (d) { if (!d) return ''; var dt = new Date(d); return dt.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }); } },
+                        { data: 'id', orderable: false, searchable: false, render: function (d) { return '<div class="d-flex gap-1"><a href="' + baseUrl + 'Details/' + d + '" class="btn-ghost btn-icon btn-sm" title="Details"><i class="fas fa-eye"></i></a><button type="button" class="btn-danger btn-icon btn-sm btn-delete-process" data-id="' + d + '" title="Delete"><i class="fas fa-trash"></i></button></div>'; } }
+                    ],
+                    order: [[9, 'desc']],
+                    language: { emptyTable: 'No processes found.', zeroRecords: 'No matching processes found.', processing: '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>' },
+                    drawCallback: function () { syncCheckboxes(); }
+                });
+            }
+            function escapeHtml(s) { if (!s) return ''; var d = document.createElement('div'); d.appendChild(document.createTextNode(s)); return d.innerHTML; }
+            function updateShowingInfo() { var info = table.page.info(); if (info) $('#showingInfo').text('Showing ' + (info.start + 1) + '-' + info.end + ' of ' + info.recordsTotal + ' processes'); }
+            function updateExportLinks() {
+                var p = function (id) { return encodeURIComponent($('#' + id).val() || ''); };
+                $('#btnExportExcel').attr('href', '@Url.Action("ExportExcel")?searchTerm=' + p('searchInput') + '&userFilter=' + p('userFilter') + '&statusFilter=' + p('statusFilter') + '&dateFrom=' + p('dateFrom') + '&dateTo=' + p('dateTo'));
+                $('#btnExportPdf').attr('href', '@Url.Action("ExportPdf")?searchTerm=' + p('searchInput') + '&userFilter=' + p('userFilter') + '&statusFilter=' + p('statusFilter') + '&dateFrom=' + p('dateFrom') + '&dateTo=' + p('dateTo'));
+            }
+            function syncCheckboxes() {
+                var any = false;
+                $('#processesBody .process-checkbox').each(function () { if (selectedIds.has(this.value)) { this.checked = true; any = true; } else { this.checked = false; } });
+                $('#selectAll').prop('checked', any && $('#processesBody .process-checkbox:checked').length === $('#processesBody .process-checkbox').length);
+                updateSelectedCount();
+            }
+            function updateSelectedCount() { $('#selectedCount').text(selectedIds.size); $('#btnBulkDelete').prop('disabled', selectedIds.size === 0); }
+            $.get('@Url.Action("GetFilterOptions")', function (res) {
+                if (res.users) res.users.forEach(function (u) { $('#userFilter').append('<option value="' + u.value + '">' + escapeHtml(u.label) + '</option>'); });
+                if (res.statuses) res.statuses.forEach(function (s) { $('#statusFilter').append('<option value="' + s.value + '">' + escapeHtml(s.label) + '</option>'); });
+            });
+            $('#btnSearch').on('click', function () { selectedIds.clear(); table.ajax.reload(null, true); });
+            $('#searchInput, #dateFrom, #dateTo, #userFilter, #statusFilter').on('keyup change', function (e) { if (e.type === 'keyup' && e.key !== 'Enter') return; selectedIds.clear(); table.ajax.reload(null, true); });
+            $('#selectAll').on('change', function () { var c = this.checked; $('#processesBody .process-checkbox').each(function () { this.checked = c; if (c) selectedIds.add(this.value); else selectedIds.delete(this.value); }); updateSelectedCount(); });
+            $('#processesBody').on('change', '.process-checkbox', function () { if (this.checked) selectedIds.add(this.value); else selectedIds.delete(this.value); var t = $('#processesBody .process-checkbox').length, c = $('#processesBody .process-checkbox:checked').length; $('#selectAll').prop('checked', t > 0 && c === t); updateSelectedCount(); });
+            var token = $('input[name="__RequestVerificationToken"]').first().val() || '', bulkUrl = '@Url.Action("BulkAction")';
+            $('#btnBulkDelete').on('click', function () {
+                if (!selectedIds.size) return;
+                Swal.fire({ title: 'Delete ' + selectedIds.size + ' process(es)?', text: 'This will soft-delete the selected processes.', icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', confirmButtonText: 'Yes, delete them!' }).then(function (r) {
+                    if (r.isConfirmed) { Swal.fire({ title: 'Deleting...', allowOutsideClick: false, didOpen: function () { Swal.showLoading(); } }); $.ajax({ url: bulkUrl + '?action=delete', type: 'POST', data: { selectedIds: Array.from(selectedIds), __RequestVerificationToken: token }, traditional: true }).done(function (r2) { selectedIds.clear(); table.ajax.reload(null, true); Swal.fire('Deleted!', r2.message || 'Processes deleted.', 'success'); }).fail(function () { Swal.fire('Error', 'Failed to delete processes.', 'error'); }); }
+                });
+            });
+            $('#processesTable').on('click', '.btn-delete-process', function () {
+                var id = $(this).data('id');
+                Swal.fire({ title: 'Delete this process?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', confirmButtonText: 'Delete' }).then(function (r) {
+                    if (r.isConfirmed) { $.ajax({ url: '@Url.Action("Delete")/' + id, type: 'POST', data: { __RequestVerificationToken: token } }).done(function () { table.ajax.reload(null, true); Swal.fire('Deleted!', 'Process deleted.', 'success'); }).fail(function () { Swal.fire('Error', 'Failed to delete process.', 'error'); }); }
+                });
+            });
+            initTable();
+        })();
+    </script>
+}

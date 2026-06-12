@@ -1,0 +1,72 @@
+@page
+@model EDFRR.Areas.Identity.Pages.Account.RegisterModel
+@{
+    ViewData["Title"] = "Register";
+}
+
+<div class="row justify-content-center animate-in" style="margin-top:60px;">
+    <div class="col-md-6 col-lg-5">
+        <div class="card-edfrr">
+            <div class="card-edfrr__body" style="padding:var(--space-6);">
+                <div class="text-center mb-4">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:8px;">
+                        <polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5"/>
+                        <line x1="12" y1="22" x2="12" y2="15.5"/>
+                        <polyline points="22 8.5 12 15.5 2 8.5"/>
+                    </svg>
+                    <h5 style="font-weight:600;">Create Account</h5>
+                    <p style="font-size:13px;color:var(--text-muted);">Get started with EDFRR scheduling</p>
+                </div>
+
+                <form asp-route-returnUrl="@Model.ReturnUrl" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3" style="font-size:12px;"></div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="Input.FirstName" class="edfrr-label">First Name <span style="color:var(--color-danger)">*</span></label>
+                            <input asp-for="Input.FirstName" class="edfrr-input" placeholder="First name" />
+                            <span asp-validation-for="Input.FirstName" class="text-danger" style="font-size:11px;"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Input.LastName" class="edfrr-label">Last Name <span style="color:var(--color-danger)">*</span></label>
+                            <input asp-for="Input.LastName" class="edfrr-input" placeholder="Last name" />
+                            <span asp-validation-for="Input.LastName" class="text-danger" style="font-size:11px;"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Input.Email" class="edfrr-label">Email <span style="color:var(--color-danger)">*</span></label>
+                        <input asp-for="Input.Email" class="edfrr-input" autocomplete="username" placeholder="Email address" />
+                        <span asp-validation-for="Input.Email" class="text-danger" style="font-size:11px;"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Input.Password" class="edfrr-label">Password <span style="color:var(--color-danger)">*</span></label>
+                        <input asp-for="Input.Password" class="edfrr-input" autocomplete="new-password" placeholder="Create a password" />
+                        <span asp-validation-for="Input.Password" class="text-danger" style="font-size:11px;"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Input.ConfirmPassword" class="edfrr-label">Confirm Password <span style="color:var(--color-danger)">*</span></label>
+                        <input asp-for="Input.ConfirmPassword" class="edfrr-input" autocomplete="new-password" placeholder="Confirm your password" />
+                        <span asp-validation-for="Input.ConfirmPassword" class="text-danger" style="font-size:11px;"></span>
+                    </div>
+
+                    <button type="submit" class="btn-primary w-100">
+                        <i class="fas fa-user-plus me-1"></i> Create Account
+                    </button>
+                </form>
+
+                <div style="border-top:1px solid var(--border-subtle);margin-top:var(--space-4);padding-top:var(--space-4);text-align:center;">
+                    <p style="font-size:13px;color:var(--text-muted);margin:0;">
+                        Already have an account? <a asp-area="Identity" asp-page="/Account/Login" style="color:var(--color-primary);font-weight:500;">Sign in</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,137 @@
+@model EDFRR.Models.ViewModels.ProcessListViewModel
+@{
+    ViewData["Title"] = "Processes";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-header__title"><i class="fas fa-tasks me-2"></i>Processes</h1>
+        <p class="page-header__subtitle">@Model.TotalItems process@(Model.TotalItems != 1 ? "es" : "") found in <span class="mono">@Model.SessionName</span></p>
+    </div>
+    <div class="page-header__actions">
+                <a asp-area="" asp-action="Create" asp-route-sessionId="@Model.SessionId" class="btn-primary">
+            <i class="fas fa-plus"></i> Add Process
+        </a>
+        <a asp-area="" asp-action="Import" asp-route-sessionId="@Model.SessionId" class="btn-ghost">
+            <i class="fas fa-upload"></i> Import
+        </a>
+    </div>
+</div>
+
+<div class="card-edfrr mb-4 animate-in">
+    <div class="card-edfrr__body">
+        <form method="get" class="row g-3 align-items-end">
+            <input type="hidden" name="sessionId" value="@Model.SessionId" />
+            <div class="col-md-4">
+                <label class="edfrr-label">Search</label>
+                <input type="text" name="search" value="@Model.SearchTerm" class="edfrr-input" placeholder="Search by name or ID..." />
+            </div>
+            <div class="col-md-2">
+                <label class="edfrr-label">Status</label>
+                <select name="status" class="edfrr-select">
+                    <option value="">All</option>
+                    <option value="Ready" selected="@(Model.FilterStatus == "Ready")">Ready</option>
+                    <option value="Running" selected="@(Model.FilterStatus == "Running")">Running</option>
+                    <option value="Completed" selected="@(Model.FilterStatus == "Completed")">Completed</option>
+                    <option value="Blocked" selected="@(Model.FilterStatus == "Blocked")">Blocked</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn-primary w-100"><i class="fas fa-search"></i> Filter</button>
+            </div>
+            <div class="col-md-2">
+                <a asp-area="" asp-action="Index" asp-route-sessionId="@Model.SessionId" class="btn-ghost w-100"><i class="fas fa-times"></i> Clear</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@if (Model.Processes.Any())
+{
+    <div class="card-edfrr animate-in">
+        <div class="card-edfrr__body p-0">
+            <div class="edfrr-table-wrapper">
+                <table class="edfrr-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Process ID</th>
+                            <th>Burst Time</th>
+                            <th>Arrival</th>
+                            <th>Deadline</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in Model.Processes)
+                        {
+                            <tr>
+                                <td><span class="mono">@p.Name</span></td>
+                                <td><span class="mono">P@p.ProcessId</span></td>
+                                <td><span class="mono">@p.BurstTime</span></td>
+                                <td><span class="mono">@p.ArrivalTime</span></td>
+                                <td><span class="mono">@p.Deadline</span></td>
+                                <td><span class="mono">@p.Priority</span></td>
+                                <td>
+                                    @switch (p.Status)
+                                    {
+                                        case "Ready": <span class="badge-status badge-status--waiting">Ready</span>; break;
+                                        case "Running": <span class="badge-status badge-status--running">Running</span>; break;
+                                        case "Completed": <span class="badge-status badge-status--completed">Completed</span>; break;
+                                        case "Blocked": <span class="badge-status badge-status--pending">Blocked</span>; break;
+                                        default: <span class="badge-status badge-status--pending">@p.Status</span>; break;
+                                    }
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-1">
+                                        <a asp-area="" asp-action="Edit" asp-route-id="@p.Id" class="btn-ghost btn-icon btn-sm" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <form asp-area="" asp-action="Delete" asp-route-id="@p.Id" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn-danger btn-icon btn-sm" title="Delete"
+                                                    onclick="return confirm('Delete process &quot;@p.Name&quot;?')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    if (Model.TotalPages > 1)
+    {
+        <nav class="mt-4 d-flex justify-content-center animate-in">
+            <ul class="pagination pagination-sm">
+                @for (int i = 1; i <= Model.TotalPages; i++)
+                {
+                    <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                        <a class="page-link" asp-area="" asp-action="Index" asp-route-page="@i" asp-route-sessionId="@Model.SessionId" asp-route-search="@Model.SearchTerm" asp-route-status="@Model.FilterStatus">@i</a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    }
+}
+else
+{
+    <div class="card-edfrr animate-in">
+        <div class="card-edfrr__body">
+            <div class="empty-state">
+                <div class="empty-state__icon"><i class="fas fa-inbox"></i></div>
+                <div class="empty-state__title">No Processes Found</div>
+                <div class="empty-state__desc">No processes match your criteria.</div>
+        <a asp-area="" asp-action="Create" asp-route-sessionId="@Model.SessionId" class="btn-primary">
+                    <i class="fas fa-plus"></i> Add Process
+                </a>
+            </div>
+        </div>
+    </div>
+}

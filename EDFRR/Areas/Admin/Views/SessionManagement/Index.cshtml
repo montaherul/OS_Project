@@ -1,0 +1,171 @@
+@{
+    ViewData["Title"] = "Session Management";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-header__title"><i class="fas fa-layer-group me-2"></i>Session Management</h1>
+        <p class="page-header__subtitle" id="showingInfo"></p>
+    </div>
+    <div class="page-header__actions">
+        <a href="@Url.Action("ExportExcel")" class="btn-ghost btn-sm" id="btnExportExcel"><i class="fas fa-file-excel"></i> Excel</a>
+        <a href="@Url.Action("ExportPdf")" class="btn-ghost btn-sm" id="btnExportPdf"><i class="fas fa-file-pdf"></i> PDF</a>
+    </div>
+</div>
+
+<div class="card-edfrr mb-4 animate-in">
+    <div class="card-edfrr__body">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="edfrr-label">Search</label>
+                <input type="text" class="edfrr-input" placeholder="Session name..." id="searchInput" />
+            </div>
+            <div class="col-md-2">
+                <label class="edfrr-label">Algorithm</label>
+                <select class="edfrr-select" id="algorithmFilter"><option value="">All Algorithms</option></select>
+            </div>
+            <div class="col-md-2">
+                <label class="edfrr-label">User</label>
+                <select class="edfrr-select" id="userFilter"><option value="">All Users</option></select>
+            </div>
+            <div class="col-md-2">
+                <label class="edfrr-label">Date From</label>
+                <input type="date" class="edfrr-input" id="dateFrom" />
+            </div>
+            <div class="col-md-2">
+                <label class="edfrr-label">Date To</label>
+                <input type="date" class="edfrr-input" id="dateTo" />
+            </div>
+            <div class="col-md-1">
+                <button type="button" class="btn-primary w-100" id="btnSearch"><i class="fas fa-search"></i></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card-edfrr mb-4 animate-in">
+    <div class="card-edfrr__body">
+        <div class="bulk-actions-bar">
+            <span class="bulk-actions-bar__count"><span id="selectedCount">0</span> selected</span>
+            <div class="bulk-actions-bar__actions">
+                <button type="button" class="btn-danger btn-sm" id="btnBulkDelete" disabled>
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card-edfrr animate-in">
+    <div class="card-edfrr__body p-0">
+        <div class="edfrr-table-wrapper">
+            <table id="sessionsTable" class="edfrr-table" style="width:100%">
+                <thead>
+                    <tr>
+                        <th style="width:40px;"><input type="checkbox" id="selectAll" class="form-check-input" /></th>
+                        <th data-sort="sessionName">Session Name</th>
+                        <th data-sort="algorithmType">Algorithm</th>
+                        <th>Quantum</th>
+                        <th>Preemptive</th>
+                        <th data-sort="processCount">Processes</th>
+                        <th>User</th>
+                        <th data-sort="createdAt">Created</th>
+                        <th data-sort="status">Status</th>
+                        <th style="width:100px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="sessionsBody"></tbody>
+            </table>
+        </div>
+        <div id="loadingSpinner" class="text-center py-5">
+            <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
+            <p class="text-muted mt-2 mb-0">Loading sessions...</p>
+        </div>
+        <div id="emptyState" class="text-center py-5 d-none">
+            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+            <p class="text-muted mb-0">No sessions found.</p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            var table = null, selectedIds = new Set(), baseUrl = '@Url.Action("Index")' + '/';
+            function getAjaxUrl() { return '@Url.Action("GetSessions")'; }
+            function initTable() {
+                table = $('#sessionsTable').DataTable({
+                    processing: true, serverSide: true, pageLength: 10,
+                    lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+                    ajax: {
+                        url: getAjaxUrl(), type: 'GET',
+                        data: function (d) {
+                            d.search = $('#searchInput').val();
+                            d.algorithmFilter = $('#algorithmFilter').val();
+                            d.userFilter = $('#userFilter').val();
+                            d.dateFrom = $('#dateFrom').val() ? new Date($('#dateFrom').val()).toISOString() : null;
+                            d.dateTo = $('#dateTo').val() ? new Date($('#dateTo').val() + 'T23:59:59').toISOString() : null;
+                            var colMap = { 1: 'sessionName', 2: 'algorithmType', 5: 'processCount', 7: 'createdAt', 8: 'status' };
+                            var colIdx = d.order && d.order.length ? d.order[0].column : 7;
+                            d.sortColumn = colMap[colIdx] || 'createdAt';
+                            d.sortDirection = d.order && d.order[0] && d.order[0].dir === 'asc' ? 'ASC' : 'DESC';
+                        },
+                        beforeSend: function () { $('#loadingSpinner').removeClass('d-none'); $('#sessionsTable').css('opacity', '0.5'); },
+                        complete: function () { $('#loadingSpinner').addClass('d-none'); $('#sessionsTable').css('opacity', '1'); updateShowingInfo(); updateExportLinks(); }
+                    },
+                    columns: [
+                        { data: 'id', orderable: false, searchable: false, render: function (d) { return '<input type="checkbox" class="form-check-input session-checkbox" value="' + d + '" />'; } },
+                        { data: 'sessionName', render: function (d, t, r) { return '<a href="' + baseUrl + 'Details/' + r.id + '" style="font-weight:500;color:var(--color-primary);text-decoration:none;">' + escapeHtml(d || '') + '</a>'; } },
+                        { data: 'algorithmType', render: function (d) { var c = d === 'EDF' ? 'completed' : d === 'RR' ? 'running' : 'waiting'; return '<span class="badge-status badge-status--' + c + '">' + escapeHtml(d) + '</span>'; } },
+                        { data: 'timeQuantum' },
+                        { data: 'isPreemptive', render: function (d) { return d ? '<i class="fas fa-check" style="color:var(--color-success);"></i>' : '<i class="fas fa-times" style="color:var(--color-danger);"></i>'; } },
+                        { data: 'processCount' },
+                        { data: 'createdByName', defaultContent: 'N/A', render: function (d) { return escapeHtml(d || 'N/A'); } },
+                        { data: 'createdAt', render: function (d) { if (!d) return ''; var dt = new Date(d); return dt.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }); } },
+                        { data: 'status', render: function (d) { return '<span class="badge-status badge-status--' + (d === 'Completed' ? 'completed' : d === 'Running' ? 'running' : 'waiting') + '">' + escapeHtml(d) + '</span>'; } },
+                        { data: 'id', orderable: false, searchable: false, render: function (d) { return '<div class="d-flex gap-1"><a href="' + baseUrl + 'Details/' + d + '" class="btn-ghost btn-icon btn-sm" title="Details"><i class="fas fa-eye"></i></a><button type="button" class="btn-danger btn-icon btn-sm btn-delete-session" data-id="' + d + '" title="Delete"><i class="fas fa-trash"></i></button></div>'; } }
+                    ],
+                    order: [[7, 'desc']],
+                    language: { emptyTable: 'No sessions found.', zeroRecords: 'No matching sessions found.', processing: '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>' },
+                    drawCallback: function () { syncCheckboxes(); }
+                });
+            }
+            function escapeHtml(s) { if (!s) return ''; var d = document.createElement('div'); d.appendChild(document.createTextNode(s)); return d.innerHTML; }
+            function updateShowingInfo() { var info = table.page.info(); if (info) $('#showingInfo').text('Showing ' + (info.start + 1) + '-' + info.end + ' of ' + info.recordsTotal + ' sessions'); }
+            function updateExportLinks() {
+                var p = function (id) { return encodeURIComponent($('#' + id).val() || ''); };
+                $('#btnExportExcel').attr('href', '@Url.Action("ExportExcel")?searchTerm=' + p('searchInput') + '&algorithmFilter=' + p('algorithmFilter') + '&userFilter=' + p('userFilter') + '&dateFrom=' + p('dateFrom') + '&dateTo=' + p('dateTo'));
+                $('#btnExportPdf').attr('href', '@Url.Action("ExportPdf")?searchTerm=' + p('searchInput') + '&algorithmFilter=' + p('algorithmFilter') + '&userFilter=' + p('userFilter') + '&dateFrom=' + p('dateFrom') + '&dateTo=' + p('dateTo'));
+            }
+            function syncCheckboxes() {
+                var any = false;
+                $('#sessionsBody .session-checkbox').each(function () { if (selectedIds.has(this.value)) { this.checked = true; any = true; } else { this.checked = false; } });
+                $('#selectAll').prop('checked', any && $('#sessionsBody .session-checkbox:checked').length === $('#sessionsBody .session-checkbox').length);
+                updateSelectedCount();
+            }
+            function updateSelectedCount() { $('#selectedCount').text(selectedIds.size); $('#btnBulkDelete').prop('disabled', selectedIds.size === 0); }
+            $.get('@Url.Action("GetFilterOptions")', function (res) {
+                if (res.algorithms) res.algorithms.forEach(function (a) { $('#algorithmFilter').append('<option value="' + a.value + '">' + escapeHtml(a.label) + '</option>'); });
+                if (res.users) res.users.forEach(function (u) { $('#userFilter').append('<option value="' + u.value + '">' + escapeHtml(u.label) + '</option>'); });
+            });
+            $('#btnSearch').on('click', function () { selectedIds.clear(); table.ajax.reload(null, true); });
+            $('#searchInput, #dateFrom, #dateTo, #algorithmFilter, #userFilter').on('keyup change', function (e) { if (e.type === 'keyup' && e.key !== 'Enter') return; selectedIds.clear(); table.ajax.reload(null, true); });
+            $('#selectAll').on('change', function () { var c = this.checked; $('#sessionsBody .session-checkbox').each(function () { this.checked = c; if (c) selectedIds.add(this.value); else selectedIds.delete(this.value); }); updateSelectedCount(); });
+            $('#sessionsBody').on('change', '.session-checkbox', function () { if (this.checked) selectedIds.add(this.value); else selectedIds.delete(this.value); var t = $('#sessionsBody .session-checkbox').length, c2 = $('#sessionsBody .session-checkbox:checked').length; $('#selectAll').prop('checked', t > 0 && c2 === t); updateSelectedCount(); });
+            var token = $('input[name="__RequestVerificationToken"]').first().val() || '', bulkUrl = '@Url.Action("BulkAction")';
+            $('#btnBulkDelete').on('click', function () {
+                if (!selectedIds.size) return;
+                Swal.fire({ title: 'Delete ' + selectedIds.size + ' session(s)?', text: 'This will soft-delete the selected sessions.', icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', confirmButtonText: 'Yes, delete them!' }).then(function (r) {
+                    if (r.isConfirmed) { Swal.fire({ title: 'Deleting...', allowOutsideClick: false, didOpen: function () { Swal.showLoading(); } }); $.ajax({ url: bulkUrl + '?action=delete', type: 'POST', data: { selectedIds: Array.from(selectedIds), __RequestVerificationToken: token }, traditional: true }).done(function (r2) { selectedIds.clear(); table.ajax.reload(null, true); Swal.fire('Deleted!', r2.message || 'Sessions deleted.', 'success'); }).fail(function () { Swal.fire('Error', 'Failed to delete sessions.', 'error'); }); }
+                });
+            });
+            $('#sessionsTable').on('click', '.btn-delete-session', function () {
+                var id = $(this).data('id');
+                Swal.fire({ title: 'Delete this session?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', confirmButtonText: 'Delete' }).then(function (r) {
+                    if (r.isConfirmed) { $.ajax({ url: '@Url.Action("Delete")/' + id, type: 'POST', data: { __RequestVerificationToken: token } }).done(function () { table.ajax.reload(null, true); Swal.fire('Deleted!', 'Session deleted.', 'success'); }).fail(function () { Swal.fire('Error', 'Failed to delete session.', 'error'); }); }
+                });
+            });
+            initTable();
+        })();
+    </script>
+}

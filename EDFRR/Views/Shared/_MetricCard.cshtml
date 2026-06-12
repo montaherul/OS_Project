@@ -1,0 +1,16 @@
+@model MetricCardViewModel
+<div class="metric-card">
+    <span class="section-label">@Model.Label</span>
+    <div class="metric-card__value">
+        @Model.Value<span class="metric-card__unit">@Model.Unit</span>
+    </div>
+    @if (Model.TrendPercent.HasValue)
+    {
+        var isGood = (Model.TrendPositiveIsGood && Model.TrendPercent >= 0) || (!Model.TrendPositiveIsGood && Model.TrendPercent <= 0);
+        var trendClass = Model.TrendPercent > 0 ? "up" : Model.TrendPercent < 0 ? "down" : "neutral";
+        <div class="metric-card__trend @trendClass">
+            @(Model.TrendPercent > 0 ? "↑" : "↓") @Math.Abs(Model.TrendPercent.Value).ToString("F1")%
+            @(isGood ? "better" : "worse")
+        </div>
+    }
+</div>

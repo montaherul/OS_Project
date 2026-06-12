@@ -1,0 +1,265 @@
+@model EDFRR.Models.ViewModels.SchedulerComparisonViewModel
+@{
+    ViewData["Title"] = "Scheduler Comparison";
+    var result = Model.Result;
+    var hasResult = result != null;
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-header__title"><i class="fas fa-balance-scale me-2"></i>Scheduler Comparison</h1>
+        <p class="page-header__subtitle">Compare EDF, RR, and Hybrid EDF+RR on the same process dataset</p>
+    </div>
+</div>
+
+<div class="card-edfrr animate-in mb-4">
+    <div class="card-edfrr__body">
+        <form method="post" asp-area="" asp-action="RunComparison" class="row g-3 align-items-end">
+            @Html.AntiForgeryToken()
+            <div class="col-md-8">
+                <label class="edfrr-label">Select Session</label>
+                <select name="sessionId" class="edfrr-select" id="sessionSelect">
+                    <option value="">-- Select a Session --</option>
+                    @foreach (var session in Model.Sessions)
+                    {
+                        <option value="@session.Id" selected="@(Model.SelectedSessionId == session.Id)">
+                            @session.Name (@session.AlgorithmType) - @session.CreatedAt.ToString("MMM dd, yyyy")
+                        </option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn-primary w-100" id="runBtn">
+                    <i class="fas fa-play"></i> Run Comparison
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@if (hasResult)
+{
+    <div class="animate-in">
+        <div class="card-edfrr mb-4" style="border-left:3px solid var(--accent-primary);">
+            <div class="card-edfrr__body">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <span class="section-label">Session</span>
+                        <div class="fw-bold" style="color:var(--text-primary);">@result.SessionName</div>
+                    </div>
+                    <div class="col-md-2">
+                        <span class="section-label">Processes</span>
+                        <div class="fw-bold mono">@result.ProcessCount</div>
+                    </div>
+                    <div class="col-md-2">
+                        <span class="section-label">Time Quantum</span>
+                        <div class="fw-bold mono">@result.TimeQuantum</div>
+                    </div>
+                    <div class="col-md-2">
+                        <span class="section-label">Preemptive</span>
+                        <div><span class="badge-status @(result.IsPreemptive ? "badge-status--completed" : "badge-status--pending")">@(result.IsPreemptive ? "Yes" : "No")</span></div>
+                    </div>
+                    <div class="col-md-3">
+                        <span class="section-label">Compared</span>
+                        <div class="fw-bold" style="font-size:13px;color:var(--text-primary);">@result.CreatedAt.ToString("MMM dd, yyyy HH:mm")</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-edfrr mb-4" style="border-left:3px solid var(--color-warning);">
+            <div class="card-edfrr__body">
+                <div class="row align-items-center">
+                    <div class="col-md-1 text-center">
+                        <i class="fas fa-trophy fa-3x" style="color:var(--color-warning);"></i>
+                    </div>
+                    <div class="col-md-8">
+                        <h5 class="mb-1">Best Algorithm: <span style="color:var(--accent-primary);">@result.RecommendedAlgorithm</span></h5>
+                        <p class="mb-0" style="color:var(--text-secondary);font-size:14px;">@result.RecommendationReason</p>
+                    </div>
+                    <div class="col-md-3 text-end">
+                        <div style="display:inline-block;background:var(--accent-primary-dim);border:1px solid var(--accent-primary);border-radius:var(--radius-md);padding:8px 20px;">
+                            <span class="section-label">Performance Score</span>
+                            <div class="display-stat" style="color:var(--accent-primary);">@result.BestScore.ToString("F1")</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-edfrr mb-4 animate-in">
+            <div class="card-edfrr__header">
+                <h5><i class="fas fa-table me-2"></i>Performance Metrics Comparison</h5>
+            </div>
+            <div class="card-edfrr__body p-0">
+                <div class="table-responsive">
+                    <table class="edfrr-table">
+                        <thead>
+                            <tr>
+                                <th style="width:25%;">Metric</th>
+                                <th class="text-center" style="width:18%;">EDF</th>
+                                <th class="text-center" style="width:18%;">RR</th>
+                                <th class="text-center" style="width:18%;">Hybrid</th>
+                                <th class="text-center" style="width:18%;">Best</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{ var metrics = new[] {
+                                ("Avg Waiting Time", result.EDF.WaitingTime, result.RR.WaitingTime, result.Hybrid.WaitingTime, "lower"),
+                                ("Avg Turnaround Time", result.EDF.TurnaroundTime, result.RR.TurnaroundTime, result.Hybrid.TurnaroundTime, "lower"),
+                                ("Avg Response Time", result.EDF.ResponseTime, result.RR.ResponseTime, result.Hybrid.ResponseTime, "lower"),
+                                ("CPU Utilization %", result.EDF.CpuUtilization, result.RR.CpuUtilization, result.Hybrid.CpuUtilization, "higher"),
+                                ("Throughput", result.EDF.Throughput, result.RR.Throughput, result.Hybrid.Throughput, "higher"),
+                                ("Context Switches", (double)result.EDF.ContextSwitches, (double)result.RR.ContextSwitches, (double)result.Hybrid.ContextSwitches, "lower"),
+                                ("Deadline Miss Ratio %", result.EDF.DeadlineMissRatio, result.RR.DeadlineMissRatio, result.Hybrid.DeadlineMissRatio, "lower")
+                            }; }
+                            @foreach (var (name, edf, rr, hybrid, pref) in metrics)
+                            {
+                                var vals = new[] { edf, rr, hybrid };
+                                var best = pref == "lower" ? vals.Min() : vals.Max();
+                                <tr>
+                                    <td class="fw-bold" style="color:var(--text-primary);">@name</td>
+                                    <td class="text-center mono" style="@(edf == best ? "color:var(--color-success);font-weight:600;background:var(--color-success-dim);" : "")">@edf.ToString("F2")</td>
+                                    <td class="text-center mono" style="@(rr == best ? "color:var(--color-success);font-weight:600;background:var(--color-success-dim);" : "")">@rr.ToString("F2")</td>
+                                    <td class="text-center mono" style="@(hybrid == best ? "color:var(--color-success);font-weight:600;background:var(--color-success-dim);" : "")">@hybrid.ToString("F2")</td>
+                                    <td class="text-center"><span class="badge-status badge-status--completed">@(best == edf ? "EDF" : best == rr ? "RR" : "Hybrid")</span></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-md-6">
+                <div class="card-edfrr animate-in">
+                    <div class="card-edfrr__header"><h5><i class="fas fa-clock me-2"></i>Waiting Time</h5></div>
+                    <div class="card-edfrr__body"><canvas id="waitingChart" height="220"></canvas></div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card-edfrr animate-in" style="animation-delay:0.05s">
+                    <div class="card-edfrr__header"><h5><i class="fas fa-hourglass-half me-2"></i>Turnaround Time</h5></div>
+                    <div class="card-edfrr__body"><canvas id="turnaroundChart" height="220"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-md-6">
+                <div class="card-edfrr animate-in">
+                    <div class="card-edfrr__header"><h5><i class="fas fa-bolt me-2"></i>Response Time</h5></div>
+                    <div class="card-edfrr__body"><canvas id="responseChart" height="220"></canvas></div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card-edfrr animate-in" style="animation-delay:0.05s">
+                    <div class="card-edfrr__header"><h5><i class="fas fa-microchip me-2"></i>CPU Utilization</h5></div>
+                    <div class="card-edfrr__body"><canvas id="cpuChart" height="220"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-md-6">
+                <div class="card-edfrr animate-in">
+                    <div class="card-edfrr__header"><h5><i class="fas fa-exclamation-triangle me-2"></i>Deadline Miss Ratio</h5></div>
+                    <div class="card-edfrr__body"><canvas id="deadlineChart" height="220"></canvas></div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card-edfrr animate-in" style="animation-delay:0.05s">
+                    <div class="card-edfrr__header"><h5><i class="fas fa-chart-radar me-2"></i>Overall Performance</h5></div>
+                    <div class="card-edfrr__body"><canvas id="radarChart" height="220"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-edfrr animate-in">
+            <div class="card-edfrr__body">
+                <div class="d-flex gap-2">
+                    <form method="post" asp-area="" asp-action="ExportComparisonReport">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="comparisonId" value="@result.Id" />
+                        <input type="hidden" name="format" value="excel" />
+                        <button type="submit" class="btn-success"><i class="fas fa-file-excel"></i> Export CSV</button>
+                    </form>
+                    <form method="post" asp-area="" asp-action="Delete" asp-route-sessionId="@result.SessionId">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@result.Id" />
+                        <button type="submit" class="btn-danger" onclick="return confirm('Delete this comparison?')"><i class="fas fa-trash"></i> Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @section Scripts {
+    <script>
+        (function () {
+            var r = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Result, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }));
+            var labels = ['EDF', 'RR', 'Hybrid'];
+            var colors = ['#7C6EFA', '#F0A732', '#2DD4A0'];
+
+            function makeChart(id, data, options) {
+                var el = document.getElementById(id);
+                if (!el) return;
+                destroyChart(id);
+                new Chart(el.getContext('2d'), {
+                    type: 'bar',
+                    data: { labels: labels, datasets: [{ label: '', data: data, backgroundColor: colors, borderRadius: 4 }] },
+                    options: options || {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: true, grid: { color: '#1E2638' } }, x: { grid: { display: false } } }
+                    }
+                });
+            }
+
+            makeChart('waitingChart', [r.edf.waitingTime, r.rr.waitingTime, r.hybrid.waitingTime]);
+            makeChart('turnaroundChart', [r.edf.turnaroundTime, r.rr.turnaroundTime, r.hybrid.turnaroundTime]);
+            makeChart('responseChart', [r.edf.responseTime, r.rr.responseTime, r.hybrid.responseTime]);
+            makeChart('cpuChart', [r.edf.cpuUtilization, r.rr.cpuUtilization, r.hybrid.cpuUtilization]);
+            makeChart('deadlineChart', [r.edf.deadlineMissRatio, r.rr.deadlineMissRatio, r.hybrid.deadlineMissRatio]);
+
+            var radarEl = document.getElementById('radarChart');
+            if (radarEl) {
+                destroyChart('radarChart');
+                var maxWaiting = Math.max(r.edf.waitingTime, r.rr.waitingTime, r.hybrid.waitingTime, 1);
+                var maxTurnaround = Math.max(r.edf.turnaroundTime, r.rr.turnaroundTime, r.hybrid.turnaroundTime, 1);
+                var maxResponse = Math.max(r.edf.responseTime, r.rr.responseTime, r.hybrid.responseTime, 1);
+
+                new Chart(radarEl.getContext('2d'), {
+                    type: 'radar',
+                    data: {
+                        labels: ['Waiting (inv)', 'Turnaround (inv)', 'Response (inv)', 'CPU Util', 'Throughput'],
+                        datasets: [
+                            { label: 'EDF', data: [ (maxWaiting - r.edf.waitingTime)/maxWaiting*100, (maxTurnaround - r.edf.turnaroundTime)/maxTurnaround*100, (maxResponse - r.edf.responseTime)/maxResponse*100, r.edf.cpuUtilization, r.edf.throughput*100 ], borderColor: colors[0], backgroundColor: colors[0] + '26', pointBackgroundColor: colors[0], borderWidth: 2 },
+                            { label: 'RR', data: [ (maxWaiting - r.rr.waitingTime)/maxWaiting*100, (maxTurnaround - r.rr.turnaroundTime)/maxTurnaround*100, (maxResponse - r.rr.responseTime)/maxResponse*100, r.rr.cpuUtilization, r.rr.throughput*100 ], borderColor: colors[1], backgroundColor: colors[1] + '26', pointBackgroundColor: colors[1], borderWidth: 2 },
+                            { label: 'Hybrid', data: [ (maxWaiting - r.hybrid.waitingTime)/maxWaiting*100, (maxTurnaround - r.hybrid.turnaroundTime)/maxTurnaround*100, (maxResponse - r.hybrid.responseTime)/maxResponse*100, r.hybrid.cpuUtilization, r.hybrid.throughput*100 ], borderColor: colors[2], backgroundColor: colors[2] + '26', pointBackgroundColor: colors[2], borderWidth: 2 }
+                        ]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        scales: { r: { beginAtZero: true, max: 100, ticks: { stepSize: 20, color: '#4E5A72' }, grid: { color: '#1E2638' }, pointLabels: { color: '#8892A8', font: { size: 11 } } } },
+                        plugins: { legend: { position: 'bottom', labels: { usePointStyle: true } } }
+                    }
+                });
+            }
+        })();
+    </script>
+    }
+}
+else
+{
+    <div class="card-edfrr animate-in">
+        <div class="card-edfrr__body">
+            <div class="empty-state">
+                <div class="empty-state__icon"><i class="fas fa-balance-scale"></i></div>
+                <div class="empty-state__title">No Comparison Results</div>
+                <div class="empty-state__desc">Select a session and click "Run Comparison" to compare scheduling algorithms.</div>
+            </div>
+        </div>
+    </div>
+}

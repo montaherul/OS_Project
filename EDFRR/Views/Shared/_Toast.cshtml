@@ -1,0 +1,35 @@
+@if (TempData["Success"] != null || TempData["Error"] != null || TempData["Warning"] != null)
+{
+    <div class="toast-container">
+        @if (TempData["Success"] != null)
+        {
+            <div class="toast toast--success">
+                <i class="fas fa-check-circle" style="color:var(--color-success);"></i>
+                <span>@TempData["Success"]</span>
+            </div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="toast toast--error">
+                <i class="fas fa-exclamation-circle" style="color:var(--color-danger);"></i>
+                <span>@TempData["Error"]</span>
+            </div>
+        }
+        @if (TempData["Warning"] != null)
+        {
+            <div class="toast toast--warning">
+                <i class="fas fa-exclamation-triangle" style="color:var(--color-warning);"></i>
+                <span>@TempData["Warning"]</span>
+            </div>
+        }
+    </div>
+    <script>
+        setTimeout(function() {
+            document.querySelectorAll('.toast').forEach(function(el) {
+                el.style.opacity = '0';
+                el.style.transform = 'translateX(100%)';
+                setTimeout(function() { el.remove(); }, 300);
+            });
+        }, 4000);
+    </script>
+}

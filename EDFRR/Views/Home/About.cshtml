@@ -1,0 +1,87 @@
+@{
+    ViewData["Title"] = "About";
+}
+
+<div class="row justify-content-center animate-in">
+    <div class="col-lg-8">
+        <div class="page-header">
+            <div>
+                <h1 class="page-header__title"><i class="fas fa-info-circle me-2"></i>About EDFRR</h1>
+            </div>
+        </div>
+
+        <div class="card-edfrr mb-4">
+            <div class="card-edfrr__body">
+                <h5 style="font-size:16px;margin-bottom:8px;">Adaptive Hybrid CPU Scheduling Framework</h5>
+                <p style="font-size:14px;color:var(--text-secondary);">
+                    EDFRR is a comprehensive web-based platform that simulates, analyzes, and visualizes
+                    real-time CPU scheduling using a hybrid algorithm that combines Earliest Deadline First (EDF)
+                    and Round Robin (RR) algorithms.
+                </p>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-md-6">
+                <div class="card-edfrr h-100">
+                    <div class="card-edfrr__header">
+                        <h5><i class="fas fa-bullseye me-2" style="color:var(--color-primary);"></i>Objectives</h5>
+                    </div>
+                    <div class="card-edfrr__body">
+                        <ul style="list-style:none;padding:0;margin:0;font-size:13px;">
+                            <li class="mb-2"><i class="fas fa-check" style="color:var(--color-success);width:18px;"></i> Implement EDF, RR, and Hybrid schedulers</li>
+                            <li class="mb-2"><i class="fas fa-check" style="color:var(--color-success);width:18px;"></i> Interactive Gantt chart visualization</li>
+                            <li class="mb-2"><i class="fas fa-check" style="color:var(--color-success);width:18px;"></i> Real-time performance metrics</li>
+                            <li class="mb-2"><i class="fas fa-check" style="color:var(--color-success);width:18px;"></i> Step-by-step simulation control</li>
+                            <li class="mb-2"><i class="fas fa-check" style="color:var(--color-success);width:18px;"></i> PDF and Excel report generation</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card-edfrr h-100">
+                    <div class="card-edfrr__header">
+                        <h5><i class="fas fa-code me-2" style="color:var(--color-success);"></i>Technology Stack</h5>
+                    </div>
+                    <div class="card-edfrr__body">
+                        <ul style="list-style:none;padding:0;margin:0;font-size:13px;">
+                            <li class="mb-2"><i class="fas fa-server" style="color:var(--color-primary);width:18px;"></i> ASP.NET Core MVC (.NET 8)</li>
+                            <li class="mb-2"><i class="fas fa-database" style="color:var(--color-warning);width:18px;"></i> Entity Framework Core + SQL Server</li>
+                            <li class="mb-2"><i class="fas fa-shield-alt" style="color:var(--color-danger);width:18px;"></i> ASP.NET Core Identity</li>
+                            <li class="mb-2"><i class="fas fa-palette" style="color:var(--color-info);width:18px;"></i> Bootstrap 5 + Chart.js</li>
+                            <li class="mb-2"><i class="fas fa-file-pdf" style="color:var(--color-danger);width:18px;"></i> iTextSharp + ClosedXML</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-edfrr">
+            <div class="card-edfrr__header">
+                <h5><i class="fas fa-cogs me-2" style="color:var(--color-warning);"></i>Supported Algorithms</h5>
+            </div>
+            <div class="card-edfrr__body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="text-center" style="padding:var(--space-3);">
+                            <h6 style="color:var(--color-danger);margin-bottom:6px;">EDF</h6>
+                            <p style="font-size:12px;color:var(--text-secondary);margin:0;">Earliest Deadline First &mdash; selects the process with the nearest deadline.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center" style="padding:var(--space-3);">
+                            <h6 style="color:var(--color-primary);margin-bottom:6px;">Round Robin</h6>
+                            <p style="font-size:12px;color:var(--text-secondary);margin:0;">Time-quantum based fair scheduling with configurable time slices.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center" style="padding:var(--space-3);">
+                            <h6 style="color:var(--color-success);margin-bottom:6px;">Hybrid EDF+RR</h6>
+                            <p style="font-size:12px;color:var(--text-secondary);margin:0;">Combines EDF priority with RR fairness for optimal real-time scheduling.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

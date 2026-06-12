@@ -1,0 +1,203 @@
+@model UserDetailsViewModel
+@{
+    ViewData["Title"] = "User Details";
+    var user = Model.User;
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-header__title"><i class="fas fa-user me-2"></i>@user.FirstName @user.LastName</h1>
+        <p class="page-header__subtitle">@user.Email</p>
+    </div>
+    <div class="page-header__actions">
+        <a asp-action="Edit" asp-route-id="@user.UserId" class="btn-primary">
+            <i class="fas fa-edit"></i> Edit
+        </a>
+        <a asp-action="Index" class="btn-ghost">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+    </div>
+</div>
+
+<div class="row g-4 animate-in">
+    <div class="col-md-6">
+        <div class="card-edfrr mb-4">
+            <div class="card-edfrr__header">
+                <h5><i class="fas fa-id-card me-2"></i>User Information</h5>
+            </div>
+            <div class="card-edfrr__body">
+                <table style="width:100%;font-size:13px;">
+                    <tbody>
+                        <tr><td style="width:140px;padding:5px 0;color:var(--text-muted);">User ID</td><td style="padding:5px 0;"><span class="mono">@user.UserId</span></td></tr>
+                        <tr><td style="padding:5px 0;color:var(--text-muted);">Username</td><td style="padding:5px 0;">@user.UserName</td></tr>
+                        <tr><td style="padding:5px 0;color:var(--text-muted);">Email</td><td style="padding:5px 0;">@user.Email</td></tr>
+                        <tr><td style="padding:5px 0;color:var(--text-muted);">First Name</td><td style="padding:5px 0;">@user.FirstName</td></tr>
+                        <tr><td style="padding:5px 0;color:var(--text-muted);">Last Name</td><td style="padding:5px 0;">@user.LastName</td></tr>
+                        <tr><td style="padding:5px 0;color:var(--text-muted);">Phone</td><td style="padding:5px 0;">@(user.PhoneNumber ?? "N/A")</td></tr>
+                        <tr><td style="padding:5px 0;color:var(--text-muted);">Role</td>
+                            <td style="padding:5px 0;">
+                                @foreach (var role in user.Roles.Split(',', StringSplitOptions.TrimEntries))
+                                {
+                                    <span class="badge-status" style="background:var(--color-primary-alpha);color:var(--color-primary);margin-right:4px;">@role</span>
+                                }
+                            </td>
+                        </tr>
+                        <tr><td style="padding:5px 0;color:var(--text-muted);">Status</td>
+                            <td style="padding:5px 0;">
+                                @if (user.Status == "Active") { <span class="badge-status badge-status--completed">Active</span> }
+                                else if (user.Status == "Locked") { <span class="badge-status badge-status--pending">Locked</span> }
+                                else { <span class="badge-status badge-status--waiting">Inactive</span> }
+                            </td>
+                        </tr>
+                        <tr><td style="padding:5px 0;color:var(--text-muted);">Created</td><td style="padding:5px 0;font-size:12px;">@user.CreatedAt.ToString("MMM dd, yyyy HH:mm")</td></tr>
+                        <tr><td style="padding:5px 0;color:var(--text-muted);">Last Login</td><td style="padding:5px 0;font-size:12px;">@(user.LastLoginAt?.ToString("MMM dd, yyyy HH:mm") ?? "Never")</td></tr>
+                        <tr><td style="padding:5px 0;color:var(--text-muted);">Failed Logins</td><td style="padding:5px 0;"><span class="mono">@user.AccessFailedCount</span></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card-edfrr mb-4">
+            <div class="card-edfrr__header">
+                <h5><i class="fas fa-chart-bar me-2"></i>Process Statistics</h5>
+            </div>
+            <div class="card-edfrr__body">
+                <div class="row g-3">
+                    <div class="col-6"><div class="metric-card"><div class="metric-card__label">Total Sessions</div><div class="metric-card__value mono">@user.TotalSessions</div></div></div>
+                    <div class="col-6"><div class="metric-card"><div class="metric-card__label">Total Processes</div><div class="metric-card__value mono">@user.TotalProcesses</div></div></div>
+                    <div class="col-6"><div class="metric-card"><div class="metric-card__label">Simulations</div><div class="metric-card__value mono">@user.TotalSimulations</div></div></div>
+                    <div class="col-6"><div class="metric-card"><div class="metric-card__label">Comparisons</div><div class="metric-card__value mono">@user.TotalComparisons</div></div></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-edfrr mb-4">
+            <div class="card-edfrr__header">
+                <h5><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
+            </div>
+            <div class="card-edfrr__body">
+                <div class="d-flex flex-wrap gap-2">
+                    @if (user.Status == "Locked")
+                    {
+                        <form method="post" asp-action="Unlock" asp-route-id="@user.UserId">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn-primary btn-sm"><i class="fas fa-unlock"></i> Unlock User</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <form method="post" asp-action="Lock" asp-route-id="@user.UserId">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn-ghost btn-sm"><i class="fas fa-lock"></i> Lock User</button>
+                        </form>
+                    }
+                    <button type="button" class="btn-ghost btn-sm" data-bs-toggle="modal" data-bs-target="#resetPasswordModal">
+                        <i class="fas fa-key"></i> Reset Password
+                    </button>
+                    <button type="button" class="btn-ghost btn-sm" data-bs-toggle="modal" data-bs-target="#roleModal">
+                        <i class="fas fa-user-tag"></i> Manage Roles
+                    </button>
+                    <form method="post" asp-action="Delete" asp-route-id="@user.UserId" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn-danger btn-sm" onclick="return confirm('Delete this user?')">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-edfrr">
+            <div class="card-edfrr__header">
+                <h5><i class="fas fa-history me-2"></i>Recent Activities</h5>
+            </div>
+            <div class="card-edfrr__body">
+                @if (user.RecentActivities.Any())
+                {
+                    @foreach (var activity in user.RecentActivities)
+                    {
+                        <div class="d-flex justify-content-between mb-2 pb-2" style="border-bottom:1px solid var(--border-subtle);font-size:12px;">
+                            <div>
+                                <span class="badge-status badge-status--running" style="font-size:9px;">@activity.Activity</span>
+                                @activity.Details
+                            </div>
+                            <small style="color:var(--text-muted);white-space:nowrap;">@activity.Timestamp.ToString("MMM dd, HH:mm")</small>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p style="color:var(--text-muted);font-size:13px;margin:0;">No recent activities.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reset Password Modal -->
+<div class="modal fade" id="resetPasswordModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background:var(--bg-card);border:1px solid var(--border-subtle);">
+            <form method="post" asp-action="ResetPassword" asp-route-id="@user.UserId">
+                @Html.AntiForgeryToken()
+                <div class="modal-header" style="border-bottom:1px solid var(--border-subtle);">
+                    <h5 class="modal-title" style="font-size:15px;">Reset Password</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" style="filter:invert(0.6);"></button>
+                </div>
+                <div class="modal-body">
+                    <p style="font-size:13px;">Reset password for <strong>@user.UserName</strong></p>
+                    <div class="mb-3">
+                        <label class="edfrr-label">New Password</label>
+                        <input type="password" name="newPassword" class="edfrr-input" required minlength="6" />
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top:1px solid var(--border-subtle);">
+                    <button type="button" class="btn-ghost" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn-primary">Reset Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Role Modal -->
+<div class="modal fade" id="roleModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background:var(--bg-card);border:1px solid var(--border-subtle);">
+            <div class="modal-header" style="border-bottom:1px solid var(--border-subtle);">
+                <h5 class="modal-title" style="font-size:15px;">Manage Roles</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" style="filter:invert(0.6);"></button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:13px;">Current roles: <strong>@user.Roles</strong></p>
+                <div class="d-flex gap-2 mb-3">
+                    <form method="post" asp-action="AssignRole" class="d-flex gap-2">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="userId" value="@user.UserId" />
+                        <select name="role" class="edfrr-select" style="width:auto;">
+                            <option value="Admin">Admin</option>
+                            <option value="User">User</option>
+                        </select>
+                        <button type="submit" class="btn-primary btn-sm">Assign</button>
+                    </form>
+                </div>
+                @foreach (var role in user.Roles.Split(',', StringSplitOptions.TrimEntries))
+                {
+                    <form method="post" asp-action="RemoveRole" class="d-inline mb-1">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="userId" value="@user.UserId" />
+                        <input type="hidden" name="role" value="@role" />
+                        <span class="badge-status" style="background:var(--color-primary-alpha);color:var(--color-primary);margin-right:4px;">
+                            @role <button type="submit" class="btn-close btn-close-white ms-1" style="font-size:0.5em;filter:invert(0.6);" title="Remove"></button>
+                        </span>
+                    </form>
+                }
+            </div>
+            <div class="modal-footer" style="border-top:1px solid var(--border-subtle);">
+                <button type="button" class="btn-ghost" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
