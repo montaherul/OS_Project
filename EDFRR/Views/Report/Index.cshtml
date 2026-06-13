@@ -71,20 +71,10 @@
                     </div>
 
                     <h6 style="font-size:13px;margin-bottom:var(--space-3);">Process Execution Details</h6>
-                    <div class="edfrr-table-wrapper">
-                        <table class="edfrr-table" style="table-layout:fixed;">
-                            <colgroup>
-                                <col style="width:7%;">
-                                <col style="width:11%;">
-                                <col style="width:11%;">
-                                <col style="width:11%;">
-                                <col style="width:11%;">
-                                <col style="width:13%;">
-                                <col style="width:13%;">
-                                <col style="width:23%;">
-                            </colgroup>
+                    <div class="edfrr-table-wrapper" style="overflow-x:auto;">
+                        <table class="edfrr-table" style="table-layout:auto;min-width:620px;">
                             <thead>
-                                <tr><th>Process</th><th>Burst</th><th>Arrival</th><th>Deadline</th><th>Completion</th><th>Turnaround</th><th>Waiting</th><th>Status</th></tr>
+                                <tr><th style="white-space:nowrap;padding:8px 8px;">Process</th><th style="white-space:nowrap;padding:8px 8px;">Burst</th><th style="white-space:nowrap;padding:8px 8px;">Arrival</th><th style="white-space:nowrap;padding:8px 8px;">Deadline</th><th style="white-space:nowrap;padding:8px 8px;">Completion</th><th style="white-space:nowrap;padding:8px 8px;">Turnaround</th><th style="white-space:nowrap;padding:8px 8px;">Waiting</th><th style="white-space:nowrap;padding:8px 8px;">Status</th></tr>
                             </thead>
                             <tbody>
                                 @foreach (var p in Model.Report.Processes)
