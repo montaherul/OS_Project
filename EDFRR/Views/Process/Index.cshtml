@@ -9,8 +9,11 @@
         <p class="page-header__subtitle">@Model.TotalItems process@(Model.TotalItems != 1 ? "es" : "") found in <span class="mono">@Model.SessionName</span></p>
     </div>
     <div class="page-header__actions">
-                <a asp-area="" asp-action="Create" asp-route-sessionId="@Model.SessionId" class="btn-primary">
+        <a asp-area="" asp-action="Create" asp-route-sessionId="@Model.SessionId" class="btn-primary">
             <i class="fas fa-plus"></i> Add Process
+        </a>
+        <a asp-area="" asp-action="BulkCreate" asp-route-sessionId="@Model.SessionId" class="btn-ghost">
+            <i class="fas fa-layer-group"></i> Bulk Add
         </a>
         <a asp-area="" asp-action="Import" asp-route-sessionId="@Model.SessionId" class="btn-ghost">
             <i class="fas fa-upload"></i> Import

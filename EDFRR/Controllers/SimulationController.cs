@@ -24,11 +24,12 @@ public class SimulationController : Controller
         _logger = logger;
     }
 
-    public async Task<IActionResult> Index(int sessionId)
+    public async Task<IActionResult> Index(int? sessionId)
     {
+        if (sessionId == null) return RedirectToAction("Index", "Session", new { area = "" });
         try
         {
-            var model = await _simulationService.InitializeSimulationAsync(sessionId);
+            var model = await _simulationService.InitializeSimulationAsync(sessionId.Value);
             return View(model);
         }
         catch (InvalidOperationException)

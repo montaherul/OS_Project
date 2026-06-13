@@ -1,5 +1,5 @@
-﻿using EDFRR.Models.ViewModels;
-using EDFRR.Repositories.Interfaces;
+﻿using EDFRR.Models.DTOs;
+using EDFRR.Models.ViewModels;
 using EDFRR.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,88 +10,65 @@ namespace EDFRR.Controllers;
 public class ReportController : Controller
 {
     private readonly IReportService _reportService;
-    private readonly ISessionRepository _sessionRepository;
+    private readonly ISessionService _sessionService;
     private readonly ILogger<ReportController> _logger;
 
     public ReportController(
         IReportService reportService,
-        ISessionRepository sessionRepository,
+        ISessionService sessionService,
         ILogger<ReportController> logger)
     {
         _reportService = reportService;
-        _sessionRepository = sessionRepository;
+        _sessionService = sessionService;
         _logger = logger;
     }
 
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(int? sessionId)
     {
-        var sessions = await _sessionRepository.GetSessionsPagedAsync(1, 100);
+        var sessionResult = await _sessionService.GetSessionsPagedAsync(1, 100);
         var model = new ReportViewModel
         {
-            Sessions = sessions.Select(s => new Models.DTOs.SessionDto
-            {
-                Id = s.Id,
-                Name = s.Name,
-                AlgorithmType = s.AlgorithmType,
-                Status = s.Status
-            }).ToList()
+            Sessions = sessionResult.Sessions
         };
+
+        if (sessionId.HasValue)
+        {
+            try
+            {
+                model.Report = await _reportService.GenerateReportAsync(sessionId.Value);
+                model.SelectedSessionId = sessionId;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading report for session {SessionId}", sessionId);
+                TempData["Warning"] = $"Could not load report: {ex.Message}";
+            }
+        }
+
         return View(model);
     }
 
-    public async Task<IActionResult> ViewReport(int sessionId)
+    public async Task<IActionResult> Export(int sessionId, string format)
     {
         try
         {
-            var report = await _reportService.GenerateReportAsync(sessionId);
-            var sessions = await _sessionRepository.GetSessionsPagedAsync(1, 100);
-            var model = new ReportViewModel
+            if (format?.ToLower() == "pdf")
             {
-                Sessions = sessions.Select(s => new Models.DTOs.SessionDto
-                {
-                    Id = s.Id,
-                    Name = s.Name,
-                    AlgorithmType = s.AlgorithmType,
-                    Status = s.Status
-                }).ToList(),
-                SelectedSessionId = sessionId,
-                Report = report
-            };
-            return View("Index", model);
+                var pdfBytes = await _reportService.GeneratePdfReportAsync(sessionId);
+                return File(pdfBytes, "application/pdf", $"SchedulingReport_{sessionId}.pdf");
+            }
+            else
+            {
+                var excelBytes = await _reportService.GenerateExcelReportAsync(sessionId);
+                return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    $"SchedulingReport_{sessionId}.xlsx");
+            }
         }
         catch (Exception ex)
         {
-            TempData["Error"] = $"Error generating report: {ex.Message}";
-            return RedirectToAction(nameof(Index));
-        }
-    }
-
-    public async Task<IActionResult> DownloadPdf(int sessionId)
-    {
-        try
-        {
-            var pdfBytes = await _reportService.GeneratePdfReportAsync(sessionId);
-            return File(pdfBytes, "application/pdf", $"SchedulingReport_{sessionId}.pdf");
-        }
-        catch (Exception ex)
-        {
-            TempData["Error"] = $"Error generating PDF: {ex.Message}";
-            return RedirectToAction(nameof(Index));
-        }
-    }
-
-    public async Task<IActionResult> DownloadExcel(int sessionId)
-    {
-        try
-        {
-            var excelBytes = await _reportService.GenerateExcelReportAsync(sessionId);
-            return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                $"SchedulingReport_{sessionId}.xlsx");
-        }
-        catch (Exception ex)
-        {
-            TempData["Error"] = $"Error generating Excel: {ex.Message}";
-            return RedirectToAction(nameof(Index));
+            _logger.LogError(ex, "Error exporting report for session {SessionId}", sessionId);
+            TempData["Error"] = $"Error exporting report: {ex.Message}";
+            return RedirectToAction(nameof(Index), new { sessionId });
         }
     }
 }

@@ -25,7 +25,7 @@
                         <div class="drop-zone__icon"><i class="fas fa-cloud-upload-alt"></i></div>
                         <div class="drop-zone__title">Drag & drop your file here</div>
                         <div class="drop-zone__desc">or click to browse</div>
-                        <input asp-for="File" class="drop-zone__input" accept=".csv,.json" />
+                        <input asp-for="File" class="drop-zone__input" accept=".csv,.xlsx" />
                         <span asp-validation-for="File" class="text-danger" style="font-size:12px;"></span>
                     </div>
 
@@ -57,21 +57,14 @@
             </div>
             <div class="card-edfrr__body">
                 <h6 style="font-size:13px;margin-bottom:var(--space-2);">CSV Format:</h6>
-                <pre style="background:var(--bg-elevated);padding:var(--space-3);border-radius:var(--radius-sm);font-size:11px;line-height:1.6;overflow-x:auto;color:var(--text-secondary);"><code>Name,ProcessId,BurstTime,ArrivalTime,Deadline,Priority
-P1,1,10,0,20,1
-P2,2,15,2,25,2</code></pre>
+                <pre style="background:var(--bg-elevated);padding:var(--space-3);border-radius:var(--radius-sm);font-size:11px;line-height:1.6;overflow-x:auto;color:var(--text-secondary);"><code>ProcessName,ArrivalTime,BurstTime,Deadline,Priority
+P1,0,5,10,1
+P2,1,3,8,1</code></pre>
 
-                <h6 style="font-size:13px;margin:var(--space-3) 0 var(--space-2);">JSON Format:</h6>
-                <pre style="background:var(--bg-elevated);padding:var(--space-3);border-radius:var(--radius-sm);font-size:11px;line-height:1.6;overflow-x:auto;color:var(--text-secondary);"><code>[
-  {
-    "name": "P1",
-    "processId": 1,
-    "burstTime": 10,
-    "arrivalTime": 0,
-    "deadline": 20,
-    "priority": 1
-  }
-]</code></pre>
+                <h6 style="font-size:13px;margin:var(--space-3) 0 var(--space-2);">Excel Format:</h6>
+                <p style="font-size:12px;color:var(--text-muted);margin-bottom:0;">
+                    Column order: ProcessName, ArrivalTime, BurstTime, Deadline, Priority
+                </p>
             </div>
         </div>
     </div>

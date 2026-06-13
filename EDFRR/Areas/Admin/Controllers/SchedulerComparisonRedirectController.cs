@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace EDFRR.Areas.Admin.Controllers;
 
 [Area("Admin")]
-[Authorize(Roles = "Admin")]
+[Authorize]
 public class SchedulerComparisonController : Controller
 {
     public IActionResult Index(int? sessionId)

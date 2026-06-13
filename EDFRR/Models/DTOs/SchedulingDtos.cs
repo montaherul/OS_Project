@@ -58,6 +58,7 @@ public class GanttChartDto
     public int EndTime { get; set; }
     public string Color { get; set; } = string.Empty;
     public bool IsContextSwitch { get; set; }
+    public bool IsIdle { get; set; }
 }
 
 public class MetricsDto

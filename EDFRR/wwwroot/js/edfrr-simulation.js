@@ -1,4 +1,8 @@
-function renderGanttChart(canvasId, ganttData) {
+function isIdle(entry) {
+  return entry.IsIdle === true || entry.ProcessId === 'IDLE';
+}
+
+function renderGanttChart(canvasId, ganttData, currentTime) {
   var canvas = document.getElementById(canvasId);
   if (!canvas || !ganttData || ganttData.length === 0) return;
 
@@ -14,7 +18,7 @@ function renderGanttChart(canvasId, ganttData) {
   ];
 
   ganttData.forEach(function (entry) {
-    if (entry.ProcessId !== 'IDLE' && !processMap[entry.ProcessId]) {
+    if (!isIdle(entry) && !processMap[entry.ProcessId]) {
       processMap[entry.ProcessId] = COLORS[colorIndex % COLORS.length];
       colorIndex++;
     }
@@ -24,6 +28,8 @@ function renderGanttChart(canvasId, ganttData) {
   var padding = { top: 8, left: 60, right: 16, bottom: 20 };
   var maxTime = ganttData.reduce(function (m, g) { return Math.max(m, g.EndTime); }, 0);
   if (maxTime === 0) maxTime = 1;
+
+  var endTime = (currentTime !== undefined && currentTime < maxTime) ? currentTime : maxTime;
   var scale = (canvas.width - padding.left - padding.right) / maxTime;
 
   var processIds = Object.keys(processMap);
@@ -37,6 +43,7 @@ function renderGanttChart(canvasId, ganttData) {
   // Group entries by PID
   var grouped = {};
   ganttData.forEach(function (entry) {
+    if (entry.StartTime >= endTime) return;
     var key = entry.ProcessId || 'IDLE';
     if (!grouped[key]) grouped[key] = [];
     grouped[key].push(entry);
@@ -63,15 +70,18 @@ function renderGanttChart(canvasId, ganttData) {
     ctx.fillText(label, padding.left - 10, y + barHeight / 2);
 
     // Background row
-    ctx.fillStyle = pid === 'IDLE' ? 'rgba(30,38,56,0.3)' : 'transparent';
+    ctx.fillStyle = isIdle({ ProcessId: pid }) ? 'rgba(30,38,56,0.3)' : 'transparent';
     ctx.fillRect(padding.left, y, canvas.width - padding.left - padding.right, barHeight);
 
     entries.forEach(function (entry) {
+      var entryEnd = entry.EndTime > endTime ? endTime : entry.EndTime;
+      if (entry.StartTime >= entryEnd) return;
+
       var x = padding.left + entry.StartTime * scale;
-      var w = Math.max((entry.EndTime - entry.StartTime) * scale, 1);
+      var w = Math.max((entryEnd - entry.StartTime) * scale, 1);
       var color;
 
-      if (entry.IsIdle) {
+      if (isIdle(entry)) {
         color = '#1E2638';
       } else if (entry.IsContextSwitch) {
         color = '#4E5A72';
@@ -94,7 +104,7 @@ function renderGanttChart(canvasId, ganttData) {
       ctx.closePath();
       ctx.fill();
 
-      if (entry.IsIdle) {
+      if (isIdle(entry)) {
         // Diagonal hatch for idle
         ctx.save();
         ctx.beginPath();
@@ -111,7 +121,7 @@ function renderGanttChart(canvasId, ganttData) {
         ctx.restore();
       }
 
-      if (!entry.IsIdle && w > 20) {
+      if (!isIdle(entry) && w > 20) {
         ctx.fillStyle = '#fff';
         ctx.font = 'bold 10px Inter, sans-serif';
         ctx.textAlign = 'center';
@@ -147,4 +157,118 @@ function renderGanttChart(canvasId, ganttData) {
     ctx.lineTo(tx, y + 4);
     ctx.stroke();
   }
+
+  // Current time indicator
+  if (endTime < maxTime) {
+    var indicatorX = padding.left + endTime * scale;
+    ctx.beginPath();
+    ctx.strokeStyle = '#F05252';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([4, 3]);
+    ctx.moveTo(indicatorX, padding.top);
+    ctx.lineTo(indicatorX, y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+}
+
+function setupGanttControls(canvasId, ganttData) {
+  var currentTime = 0;
+  var maxTime = ganttData.reduce(function (m, g) { return Math.max(m, g.EndTime); }, 0);
+  var playing = false;
+  var intervalId = null;
+
+  var stepForward = document.getElementById('stepForward');
+  var stepBack = document.getElementById('stepBack');
+  var playPause = document.getElementById('playPause');
+  var stepReset = document.getElementById('stepReset');
+  var stepEnd = document.getElementById('stepEnd');
+  var timeDisplay = document.getElementById('timeDisplay');
+  var simProgress = document.getElementById('simProgress');
+  var playIcon = document.getElementById('playIcon');
+
+  function updateDisplay() {
+    if (timeDisplay) timeDisplay.textContent = 't = ' + currentTime;
+    if (simProgress && maxTime > 0) {
+      simProgress.style.width = (currentTime / maxTime * 100) + '%';
+    }
+    renderGanttChart(canvasId, ganttData, currentTime);
+  }
+
+  function doStepForward() {
+    if (currentTime < maxTime) {
+      currentTime++;
+      updateDisplay();
+      if (currentTime >= maxTime && playing) {
+        playing = false;
+        if (intervalId) { clearInterval(intervalId); intervalId = null; }
+        if (playIcon) playIcon.className = 'fas fa-play';
+        if (playPause) playPause.title = 'Play';
+      }
+    }
+  }
+
+  function doStepBack() {
+    if (currentTime > 0) {
+      currentTime--;
+      updateDisplay();
+    }
+  }
+
+  function doPlayPause() {
+    if (playing) {
+      playing = false;
+      if (intervalId) { clearInterval(intervalId); intervalId = null; }
+      if (playIcon) playIcon.className = 'fas fa-play';
+      if (playPause) playPause.title = 'Play';
+    } else {
+      if (currentTime >= maxTime) currentTime = 0;
+      playing = true;
+      if (playIcon) playIcon.className = 'fas fa-pause';
+      if (playPause) playPause.title = 'Pause';
+      intervalId = setInterval(function () {
+        if (currentTime >= maxTime) {
+          playing = false;
+          if (intervalId) { clearInterval(intervalId); intervalId = null; }
+          if (playIcon) playIcon.className = 'fas fa-play';
+          if (playPause) playPause.title = 'Play';
+          return;
+        }
+        currentTime++;
+        updateDisplay();
+      }, 500);
+    }
+  }
+
+  function doReset() {
+    if (playing) {
+      playing = false;
+      if (intervalId) { clearInterval(intervalId); intervalId = null; }
+      if (playIcon) playIcon.className = 'fas fa-play';
+      if (playPause) playPause.title = 'Play';
+    }
+    currentTime = 0;
+    updateDisplay();
+  }
+
+  function doEnd() {
+    if (playing) {
+      playing = false;
+      if (intervalId) { clearInterval(intervalId); intervalId = null; }
+      if (playIcon) playIcon.className = 'fas fa-play';
+      if (playPause) playPause.title = 'Play';
+    }
+    currentTime = maxTime;
+    updateDisplay();
+  }
+
+  if (stepForward) stepForward.addEventListener('click', doStepForward);
+  if (stepBack) stepBack.addEventListener('click', doStepBack);
+  if (playPause) playPause.addEventListener('click', doPlayPause);
+  if (stepReset) stepReset.addEventListener('click', doReset);
+  if (stepEnd) stepEnd.addEventListener('click', doEnd);
+
+  // Initial render: show full chart, controls let user replay/reset
+  currentTime = maxTime;
+  updateDisplay();
 }

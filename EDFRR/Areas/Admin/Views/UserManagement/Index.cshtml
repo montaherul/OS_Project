@@ -127,8 +127,8 @@
 }
 
 <div class="d-flex justify-content-end gap-2 mt-3 animate-in">
-    <a asp-action="Export" asp-route-format="csv" class="btn-ghost btn-sm"><i class="fas fa-file-csv"></i> Export CSV</a>
-    <a asp-action="Export" asp-route-format="json" class="btn-ghost btn-sm"><i class="fas fa-file-code"></i> Export JSON</a>
+    <a asp-action="ExportExcel" asp-route-searchTerm="@Model.SearchTerm" asp-route-roleFilter="@Model.RoleFilter" asp-route-statusFilter="@Model.StatusFilter" class="btn-ghost btn-sm"><i class="fas fa-file-excel"></i> Export Excel</a>
+    <a asp-action="ExportPdf" asp-route-searchTerm="@Model.SearchTerm" asp-route-roleFilter="@Model.RoleFilter" asp-route-statusFilter="@Model.StatusFilter" class="btn-ghost btn-sm"><i class="fas fa-file-pdf"></i> Export PDF</a>
 </div>
 
 @section Scripts {

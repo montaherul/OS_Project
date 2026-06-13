@@ -120,3 +120,19 @@ public class MetricCardViewModel
     public double? TrendPercent { get; set; }
     public bool TrendPositiveIsGood { get; set; } = true;
 }
+
+public class BulkCreateProcessViewModel
+{
+    public int SessionId { get; set; }
+    public string SessionName { get; set; } = string.Empty;
+    public List<BulkProcessRowViewModel> Processes { get; set; } = new();
+}
+
+public class BulkProcessRowViewModel
+{
+    public string Name { get; set; } = string.Empty;
+    public int BurstTime { get; set; } = 1;
+    public int ArrivalTime { get; set; }
+    public int Deadline { get; set; } = 10;
+    public int Priority { get; set; }
+}

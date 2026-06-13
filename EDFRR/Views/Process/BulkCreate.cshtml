@@ -1,0 +1,158 @@
+@model BulkCreateProcessViewModel
+@{
+    ViewData["Title"] = "Bulk Add Processes";
+}
+<div class="page-header">
+    <div>
+        <h1 class="page-header__title"><i class="fas fa-layer-group me-2"></i>Bulk Add Processes</h1>
+        <p class="page-header__subtitle">Add multiple processes to <span class="mono">@Model.SessionName</span></p>
+    </div>
+    <div class="page-header__actions">
+        <a asp-area="" asp-action="Create" asp-route-sessionId="@Model.SessionId" class="btn-ghost">
+            <i class="fas fa-plus"></i> Add Single
+        </a>
+        <a asp-area="" asp-action="Import" asp-route-sessionId="@Model.SessionId" class="btn-ghost">
+            <i class="fas fa-upload"></i> Import
+        </a>
+    </div>
+</div>
+
+<form asp-area="" asp-action="BulkCreate" method="post">
+    <input type="hidden" asp-for="SessionId" />
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-3" style="font-size:13px;"></div>
+
+    <div class="card-edfrr animate-in">
+        <div class="card-edfrr__header">
+            <h5><i class="fas fa-microchip me-2"></i>Processes</h5>
+            <button type="button" id="addRowBtn" class="btn-primary btn-sm">
+                <i class="fas fa-plus"></i> Add Row
+            </button>
+        </div>
+        <div class="card-edfrr__body p-0">
+            <div class="edfrr-table-wrapper">
+                <table class="edfrr-table" id="processTable">
+                    <thead>
+                        <tr>
+                            <th style="width:40px;">#</th>
+                            <th style="min-width:140px;">Name <span style="color:var(--color-danger)">*</span></th>
+                            <th style="width:100px;">Burst <span style="color:var(--color-danger)">*</span></th>
+                            <th style="width:100px;">Arrival</th>
+                            <th style="width:100px;">Deadline <span style="color:var(--color-danger)">*</span></th>
+                            <th style="width:90px;">Priority</th>
+                            <th style="width:44px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="processRows">
+                        @for (int i = 0; i < Model.Processes.Count; i++)
+                        {
+                            <tr>
+                                <td class="row-index mono" style="text-align:center;color:var(--text-muted);">@(i + 1)</td>
+                                <td>
+                                    <input name="Processes[@i].Name"
+                                           id="Processes_@(i)__Name"
+                                           value="@Model.Processes[i].Name"
+                                           class="edfrr-input" placeholder="e.g. P1" />
+                                </td>
+                                <td>
+                                    <input name="Processes[@i].BurstTime"
+                                           id="Processes_@(i)__BurstTime"
+                                           value="@Model.Processes[i].BurstTime"
+                                           type="number" min="1" class="edfrr-input mono" placeholder="e.g. 5" />
+                                </td>
+                                <td>
+                                    <input name="Processes[@i].ArrivalTime"
+                                           id="Processes_@(i)__ArrivalTime"
+                                           value="@Model.Processes[i].ArrivalTime"
+                                           type="number" min="0" class="edfrr-input mono" placeholder="0" />
+                                </td>
+                                <td>
+                                    <input name="Processes[@i].Deadline"
+                                           id="Processes_@(i)__Deadline"
+                                           value="@Model.Processes[i].Deadline"
+                                           type="number" min="1" class="edfrr-input mono" placeholder="e.g. 10" />
+                                </td>
+                                <td>
+                                    <input name="Processes[@i].Priority"
+                                           id="Processes_@(i)__Priority"
+                                           value="@Model.Processes[i].Priority"
+                                           type="number" min="0" max="10" class="edfrr-input mono" placeholder="0" />
+                                </td>
+                                <td style="text-align:center;">
+                                    <button type="button" class="btn-danger btn-icon btn-sm remove-row" title="Remove">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2 mt-4 animate-in">
+        <button type="submit" class="btn-primary btn-lg">
+            <i class="fas fa-save"></i> Create All (@Model.Processes.Count)
+        </button>
+        <a asp-area="" asp-action="Index" asp-route-sessionId="@Model.SessionId" class="btn-ghost btn-lg">
+            <i class="fas fa-times"></i> Cancel
+        </a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            var rowCounter = @Model.Processes.Count;
+            var tbody = document.getElementById('processRows');
+            var addBtn = document.getElementById('addRowBtn');
+            var form = tbody.closest('form');
+            var submitBtn = form.querySelector('button[type="submit"]');
+
+            function reindex() {
+                var rows = tbody.querySelectorAll('tr');
+                rows.forEach(function (tr, idx) {
+                    tr.querySelector('.row-index').textContent = idx + 1;
+                    var inputs = tr.querySelectorAll('input');
+                    inputs.forEach(function (inp) {
+                        var name = inp.getAttribute('name');
+                        if (name) inp.setAttribute('name', name.replace(/Processes\[\d+\]/, 'Processes[' + idx + ']'));
+                    });
+                });
+                if (submitBtn) {
+                    submitBtn.innerHTML = '<i class="fas fa-save"></i> Create All (' + rows.length + ')';
+                }
+            }
+
+            function addRow() {
+                var index = rowCounter++;
+                var tr = document.createElement('tr');
+                tr.innerHTML =
+                    '<td class="row-index mono" style="text-align:center;color:var(--text-muted);">' + (index + 1) + '</td>' +
+                    '<td><input name="Processes[' + index + '].Name" class="edfrr-input" placeholder="e.g. P1" /></td>' +
+                    '<td><input name="Processes[' + index + '].BurstTime" type="number" min="1" class="edfrr-input mono" placeholder="e.g. 5" /></td>' +
+                    '<td><input name="Processes[' + index + '].ArrivalTime" type="number" min="0" class="edfrr-input mono" placeholder="0" /></td>' +
+                    '<td><input name="Processes[' + index + '].Deadline" type="number" min="1" class="edfrr-input mono" placeholder="e.g. 10" /></td>' +
+                    '<td><input name="Processes[' + index + '].Priority" type="number" min="0" max="10" class="edfrr-input mono" placeholder="0" /></td>' +
+                    '<td style="text-align:center;"><button type="button" class="btn-danger btn-icon btn-sm remove-row" title="Remove"><i class="fas fa-times"></i></button></td>';
+                tbody.appendChild(tr);
+                reindex();
+                tr.querySelector('input').focus();
+            }
+
+            function removeRow(btn) {
+                var tr = btn.closest('tr');
+                if (tbody.querySelectorAll('tr').length <= 1) return;
+                tr.remove();
+                reindex();
+            }
+
+            addBtn.addEventListener('click', addRow);
+            tbody.addEventListener('click', function (e) {
+                var btn = e.target.closest('.remove-row');
+                if (btn) removeRow(btn);
+            });
+        })();
+    </script>
+}

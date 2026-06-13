@@ -103,6 +103,43 @@ public class AdminService : IAdminService
         return result.Succeeded;
     }
 
+    public async Task<(bool Success, string? UserId, string? Error)> CreateUserAsync(
+        string email, string password, string firstName, string lastName, string? phoneNumber, string role)
+    {
+        var user = new ApplicationUser
+        {
+            UserName = email,
+            Email = email,
+            FirstName = firstName,
+            LastName = lastName,
+            PhoneNumber = phoneNumber,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow,
+            EmailConfirmed = true
+        };
+
+        var result = await _userManager.CreateAsync(user, password);
+        if (!result.Succeeded)
+        {
+            var error = string.Join("; ", result.Errors.Select(e => e.Description));
+            _logger.LogWarning("Failed to create user {Email}: {Errors}", email, error);
+            return (false, null, error);
+        }
+
+        var roleResult = await _userManager.AddToRoleAsync(user, role);
+        if (!roleResult.Succeeded)
+        {
+            await _userManager.DeleteAsync(user);
+            var error = string.Join("; ", roleResult.Errors.Select(e => e.Description));
+            _logger.LogWarning("Failed to assign role {Role} to new user {Email}: {Errors}", role, email, error);
+            return (false, null, error);
+        }
+
+        _logger.LogInformation("Admin created user {UserId} ({Email}) with role {Role}", user.Id, email, role);
+        await _activityLogService.LogAsync(null, "User Created", $"User {email} created with role {role}", null);
+        return (true, user.Id, null);
+    }
+
     public async Task<bool> AssignRoleAsync(string userId, string role)
     {
         var user = await _userManager.FindByIdAsync(userId);

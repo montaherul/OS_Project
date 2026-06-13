@@ -90,8 +90,36 @@ using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var db = services.GetRequiredService<ApplicationDbContext>();
+    var logger = services.GetRequiredService<ILogger<Program>>();
     db.Database.Migrate();
     await DataSeeder.SeedAsync(services);
+
+    try
+    {
+        var sqlPath = Path.Combine(Directory.GetCurrentDirectory(), "Data", "Sql", "StoredProcedures.sql");
+        if (File.Exists(sqlPath))
+        {
+            var sql = await File.ReadAllTextAsync(sqlPath);
+            var batches = System.Text.RegularExpressions.Regex.Split(sql, @"^\s*GO\s*$", System.Text.RegularExpressions.RegexOptions.Multiline | System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            foreach (var batch in batches)
+            {
+                var trimmed = batch.Trim();
+                if (trimmed.Length > 0)
+                {
+                    await db.Database.ExecuteSqlRawAsync(trimmed);
+                }
+            }
+            logger.LogInformation("Stored procedures deployed from {Path}", sqlPath);
+        }
+        else
+        {
+            logger.LogWarning("Stored procedures file not found at {Path}", sqlPath);
+        }
+    }
+    catch (Exception ex)
+    {
+        logger.LogWarning(ex, "Could not deploy stored procedures (they may already exist)");
+    }
 }
 
 app.Run();

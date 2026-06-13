@@ -23,9 +23,27 @@ public class UserManagementController : Controller
         _logger = logger;
     }
 
-    public IActionResult Index()
+    public async Task<IActionResult> Index(
+        string? search, string? role, string? status,
+        string sortColumn = "CreatedAt", string sortDirection = "DESC",
+        int page = 1, int pageSize = 10)
     {
-        return View(new UserManagementViewModel());
+        var users = await _adminRepository.GetUsersPagedAsync(
+            page, pageSize, search, sortColumn, sortDirection, role, status);
+
+        var model = new UserManagementViewModel
+        {
+            Users = users,
+            SearchTerm = search,
+            RoleFilter = role,
+            StatusFilter = status,
+            SortColumn = sortColumn,
+            SortDirection = sortDirection,
+            PageNumber = page,
+            PageSize = pageSize
+        };
+
+        return View(model);
     }
 
     [HttpGet]
@@ -53,6 +71,30 @@ public class UserManagementController : Controller
             _logger.LogError(ex, "Error fetching users via AJAX");
             return Json(new { draw, recordsTotal = 0, recordsFiltered = 0, data = Array.Empty<AdminUserDto>() });
         }
+    }
+
+    public IActionResult Create()
+    {
+        return View(new CreateUserViewModel());
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Create(CreateUserViewModel model)
+    {
+        if (!ModelState.IsValid) return View(model);
+
+        var (success, userId, error) = await _adminService.CreateUserAsync(
+            model.Email, model.Password, model.FirstName, model.LastName, model.PhoneNumber, model.Role);
+
+        if (success)
+        {
+            TempData["Success"] = $"User '{model.Email}' created successfully.";
+            return RedirectToAction(nameof(Details), new { id = userId });
+        }
+
+        ModelState.AddModelError("", error ?? "Failed to create user.");
+        return View(model);
     }
 
     public async Task<IActionResult> Details(string id)

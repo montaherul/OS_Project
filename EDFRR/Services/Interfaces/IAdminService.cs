@@ -12,6 +12,7 @@ public interface IAdminService
     Task<bool> LockUserAsync(string userId, string performedBy);
     Task<bool> UnlockUserAsync(string userId, string performedBy);
     Task<bool> ResetPasswordAsync(string userId, string newPassword, string performedBy);
+    Task<(bool Success, string? UserId, string? Error)> CreateUserAsync(string email, string password, string firstName, string lastName, string? phoneNumber, string role);
     Task<bool> AssignRoleAsync(string userId, string role);
     Task<bool> RemoveRoleAsync(string userId, string role);
     Task<bool> BulkDeleteUsersAsync(List<string> userIds);

@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Linq;
+using System.Text.Json;
 using EDFRR.Models.DTOs;
 using EDFRR.Models.Entities;
 using EDFRR.Models.ViewModels;
@@ -29,24 +30,26 @@ public class ProcessController : Controller
         _logger = logger;
     }
 
-    public async Task<IActionResult> Index(int sessionId, int page = 1, string? search = null, string? status = null)
+    public async Task<IActionResult> Index(int? sessionId, int page = 1, string? search = null, string? status = null)
     {
-        var session = await _sessionRepository.GetByIdAsync(sessionId);
+        if (sessionId == null) return RedirectToAction("Index", "Session", new { area = "" });
+        var session = await _sessionRepository.GetByIdAsync(sessionId.Value);
         if (session == null) return NotFound();
 
-        var model = await _processService.GetProcessesPagedAsync(sessionId, page, 10, search, status);
+        var model = await _processService.GetProcessesPagedAsync(sessionId.Value, page, 10, search, status);
         model.SessionName = session.Name;
         return View(model);
     }
 
-    public async Task<IActionResult> Create(int sessionId)
+    public async Task<IActionResult> Create(int? sessionId)
     {
-        var session = await _sessionRepository.GetByIdAsync(sessionId);
+        if (sessionId == null) return RedirectToAction("Index", "Session", new { area = "" });
+        var session = await _sessionRepository.GetByIdAsync(sessionId.Value);
         if (session == null) return NotFound();
 
         var model = new ProcessCreateViewModel
         {
-            SchedulingSessionId = sessionId,
+            SchedulingSessionId = sessionId.Value,
             SessionName = session.Name
         };
         return View(model);
@@ -117,28 +120,61 @@ public class ProcessController : Controller
         return RedirectToAction(nameof(Index), new { sessionId });
     }
 
-    [HttpPost]
-    public async Task<IActionResult> BulkAdd(int sessionId, int count)
+    public async Task<IActionResult> BulkCreate(int? sessionId)
     {
-        var random = new Random();
-        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (sessionId == null) return RedirectToAction("Index", "Session", new { area = "" });
+        var session = await _sessionRepository.GetByIdAsync(sessionId.Value);
+        if (session == null) return NotFound();
 
-        for (int i = 0; i < count; i++)
+        var model = new BulkCreateProcessViewModel
+        {
+            SessionId = sessionId.Value,
+            SessionName = session.Name,
+            Processes = Enumerable.Range(0, 3).Select(_ => new BulkProcessRowViewModel()).ToList()
+        };
+        return View(model);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> BulkCreate(BulkCreateProcessViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            var session = await _sessionRepository.GetByIdAsync(model.SessionId);
+            model.SessionName = session?.Name ?? string.Empty;
+            return View(model);
+        }
+
+        var validRows = model.Processes.Where(p => !string.IsNullOrWhiteSpace(p.Name)).ToList();
+        if (validRows.Count == 0)
+        {
+            ModelState.AddModelError("", "At least one process must have a name.");
+            var session = await _sessionRepository.GetByIdAsync(model.SessionId);
+            model.SessionName = session?.Name ?? string.Empty;
+            return View(model);
+        }
+
+        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+        var created = 0;
+
+        foreach (var row in validRows)
         {
             var dto = new CreateProcessDto
             {
-                Name = $"Process_{i + 1}",
-                ArrivalTime = random.Next(0, 10),
-                BurstTime = random.Next(1, 10),
-                Deadline = random.Next(5, 20),
-                Priority = random.Next(0, 5),
-                SchedulingSessionId = sessionId
+                Name = row.Name,
+                ArrivalTime = row.ArrivalTime,
+                BurstTime = row.BurstTime,
+                Deadline = row.Deadline,
+                Priority = row.Priority,
+                SchedulingSessionId = model.SessionId
             };
-            await _processService.CreateAsync(dto, userId ?? string.Empty);
+            await _processService.CreateAsync(dto, userId);
+            created++;
         }
 
-        TempData["Success"] = $"{count} processes added successfully.";
-        return RedirectToAction(nameof(Index), new { sessionId });
+        TempData["Success"] = $"{created} process(es) created successfully.";
+        return RedirectToAction(nameof(Index), new { sessionId = model.SessionId });
     }
 
     // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -148,14 +184,15 @@ public class ProcessController : Controller
     /// <summary>
     /// GET: Displays the import page for a given session.
     /// </summary>
-    public async Task<IActionResult> Import(int sessionId)
+    public async Task<IActionResult> Import(int? sessionId)
     {
-        var session = await _sessionRepository.GetByIdAsync(sessionId);
+        if (sessionId == null) return RedirectToAction("Index", "Session", new { area = "" });
+        var session = await _sessionRepository.GetByIdAsync(sessionId.Value);
         if (session == null) return NotFound();
 
         var model = new ImportProcessViewModel
         {
-            SchedulingSessionId = sessionId,
+            SchedulingSessionId = sessionId.Value,
             SessionName = session.Name
         };
         return View(model);
@@ -224,9 +261,10 @@ public class ProcessController : Controller
     /// <summary>
     /// GET: Shows the import results summary page.
     /// </summary>
-    public async Task<IActionResult> ImportResults(int sessionId)
+    public async Task<IActionResult> ImportResults(int? sessionId)
     {
-        var session = await _sessionRepository.GetByIdAsync(sessionId);
+        if (sessionId == null) return RedirectToAction("Index", "Session", new { area = "" });
+        var session = await _sessionRepository.GetByIdAsync(sessionId.Value);
         if (session == null) return NotFound();
 
         var resultJson = TempData["ImportResult"] as string;
@@ -243,7 +281,7 @@ public class ProcessController : Controller
             return RedirectToAction(nameof(Import), new { sessionId });
         }
 
-        result.SchedulingSessionId = sessionId;
+        result.SchedulingSessionId = sessionId.Value;
         result.SessionName = session.Name;
 
         return View(result);

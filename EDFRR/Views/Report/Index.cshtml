@@ -55,7 +55,7 @@
                     <h5><i class="fas fa-chart-bar me-2"></i>@Model.Report.SessionName - Summary</h5>
                     <div class="d-flex gap-2">
                         <a asp-area="" asp-action="Export" asp-route-sessionId="@Model.SelectedSessionId" asp-route-format="pdf" class="btn-ghost btn-sm"><i class="fas fa-file-pdf"></i> PDF</a>
-                        <a asp-area="" asp-action="Export" asp-route-sessionId="@Model.SelectedSessionId" asp-route-format="csv" class="btn-ghost btn-sm"><i class="fas fa-file-csv"></i> CSV</a>
+                        <a asp-area="" asp-action="Export" asp-route-sessionId="@Model.SelectedSessionId" asp-route-format="excel" class="btn-ghost btn-sm"><i class="fas fa-file-excel"></i> Excel</a>
                     </div>
                 </div>
                 <div class="card-edfrr__body">
@@ -72,7 +72,17 @@
 
                     <h6 style="font-size:13px;margin-bottom:var(--space-3);">Process Execution Details</h6>
                     <div class="edfrr-table-wrapper">
-                        <table class="edfrr-table">
+                        <table class="edfrr-table" style="table-layout:fixed;">
+                            <colgroup>
+                                <col style="width:7%;">
+                                <col style="width:11%;">
+                                <col style="width:11%;">
+                                <col style="width:11%;">
+                                <col style="width:11%;">
+                                <col style="width:13%;">
+                                <col style="width:13%;">
+                                <col style="width:23%;">
+                            </colgroup>
                             <thead>
                                 <tr><th>Process</th><th>Burst</th><th>Arrival</th><th>Deadline</th><th>Completion</th><th>Turnaround</th><th>Waiting</th><th>Status</th></tr>
                             </thead>
@@ -80,14 +90,14 @@
                                 @foreach (var p in Model.Report.Processes)
                                 {
                                     <tr>
-                                        <td><span class="mono">@p.Name</span></td>
-                                        <td><span class="mono">@p.BurstTime</span></td>
-                                        <td><span class="mono">@p.ArrivalTime</span></td>
-                                        <td><span class="mono">@p.Deadline</span></td>
-                                        <td><span class="mono">@p.CompletionTime</span></td>
-                                        <td><span class="mono">@p.TurnaroundTime</span></td>
-                                        <td><span class="mono">@p.WaitingTime</span></td>
-                                        <td>
+                                        <td style="white-space:nowrap;padding:8px 8px;"><span class="mono">@p.Name</span></td>
+                                        <td style="white-space:nowrap;padding:8px 8px;"><span class="mono">@p.BurstTime</span></td>
+                                        <td style="white-space:nowrap;padding:8px 8px;"><span class="mono">@p.ArrivalTime</span></td>
+                                        <td style="white-space:nowrap;padding:8px 8px;"><span class="mono">@p.Deadline</span></td>
+                                        <td style="white-space:nowrap;padding:8px 8px;"><span class="mono">@p.CompletionTime</span></td>
+                                        <td style="white-space:nowrap;padding:8px 8px;"><span class="mono">@p.TurnaroundTime</span></td>
+                                        <td style="white-space:nowrap;padding:8px 8px;"><span class="mono">@p.WaitingTime</span></td>
+                                        <td style="white-space:nowrap;padding:8px 8px;">
                                             @if (p.MissedDeadline) { <span class="badge-status badge-status--pending">Missed</span> }
                                             else { <span class="badge-status badge-status--completed">On Time</span> }
                                         </td>

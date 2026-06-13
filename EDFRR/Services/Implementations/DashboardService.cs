@@ -50,11 +50,42 @@ public class DashboardService : IDashboardService
         try
         {
             var totalSessions = await _sessionRepository.CountAsync(s => !s.IsDeleted);
-            var totalProcesses = await _processRepository.CountAsync(p => !p.IsDeleted);
             var allSessions = (await _sessionRepository.GetAllAsync())
                 .Where(s => !s.IsDeleted)
                 .OrderByDescending(s => s.CreatedAt)
                 .ToList();
+            var allResults = (await _resultRepository.GetAllWithSessionInfoAsync()).ToList();
+            var totalProcesses = allResults.Count;
+
+            double avgWaitingTime = allResults.Count > 0 ? allResults.Average(r => r.WaitingTime) : 0;
+            double avgTurnaroundTime = allResults.Count > 0 ? allResults.Average(r => r.TurnaroundTime) : 0;
+            double avgResponseTime = allResults.Count > 0 ? allResults.Average(r => r.ResponseTime) : 0;
+            double avgCpuUtil = allResults.Count > 0 ? allResults.Average(r => r.CpuUtilization) : 0;
+            double avgThroughput = allResults.Count > 0 ? allResults.Average(r => r.Throughput) : 0;
+            int contextSwitches = allResults.Count > 0 ? allResults.First().ContextSwitchCount : 0;
+            int missedDeadlines = allResults.Count(r => r.IsMissedDeadline);
+            double deadlineSuccess = allResults.Count > 0
+                ? Math.Round((double)(allResults.Count - missedDeadlines) / allResults.Count * 100, 1) : 0;
+
+            var processResults = allResults.Select(r => new ProcessResultDto
+            {
+                ProcessId = r.ProcessId,
+                ProcessName = r.ProcessName,
+                ArrivalTime = r.ArrivalTime,
+                BurstTime = r.BurstTime,
+                Deadline = r.Deadline,
+                CompletionTime = r.CompletionTime,
+                WaitingTime = r.WaitingTime,
+                TurnaroundTime = r.TurnaroundTime,
+                ResponseTime = r.ResponseTime,
+                MissedDeadline = r.IsMissedDeadline
+            }).ToList();
+
+            var processStats = new List<ProcessStatisticsDto>
+            {
+                new() { Status = "Completed", Count = allResults.Count(r => !r.IsMissedDeadline) },
+                new() { Status = "Missed Deadline", Count = missedDeadlines }
+            };
 
             var allSessionsList = new List<SessionDto>();
             foreach (var s in allSessions)
@@ -73,10 +104,39 @@ public class DashboardService : IDashboardService
                 });
             }
 
+            var sessionPerformances = new List<SessionPerformanceDto>();
+            foreach (var s in allSessions)
+            {
+                var sessionResults = allResults.Where(r => r.SchedulingSessionId == s.Id).ToList();
+                if (sessionResults.Count > 0)
+                {
+                    sessionPerformances.Add(new SessionPerformanceDto
+                    {
+                        SessionName = s.Name,
+                        AlgorithmType = s.AlgorithmType,
+                        CpuUtilization = Math.Round(sessionResults.Average(r => r.CpuUtilization), 2),
+                        Throughput = Math.Round(sessionResults.Average(r => r.Throughput), 4),
+                        MissedDeadlines = sessionResults.Count(r => r.IsMissedDeadline)
+                    });
+                }
+            }
+
             return new DashboardDto
             {
                 TotalSessions = totalSessions,
                 TotalProcesses = totalProcesses,
+                CompletedProcesses = allResults.Count,
+                MissedDeadlines = missedDeadlines,
+                AverageWaitingTime = Math.Round(avgWaitingTime, 2),
+                AverageTurnaroundTime = Math.Round(avgTurnaroundTime, 2),
+                AverageResponseTime = Math.Round(avgResponseTime, 2),
+                CpuUtilization = Math.Round(avgCpuUtil, 2),
+                Throughput = Math.Round(avgThroughput, 4),
+                ContextSwitchCount = contextSwitches,
+                DeadlineSuccessRate = deadlineSuccess,
+                ProcessResults = processResults,
+                ProcessStatistics = processStats,
+                SessionPerformances = sessionPerformances,
                 AllSessions = allSessionsList
             };
         }
@@ -351,7 +411,7 @@ public class DashboardService : IDashboardService
             var allResults = (await _resultRepository.GetAllWithSessionInfoAsync())
                 .Where(r => userSessionIds.Contains(r.SchedulingSessionId))
                 .ToList();
-            var totalProcesses = await _processRepository.CountAsync(p => !p.IsDeleted);
+            var totalProcesses = allResults.Count;
             var totalSessions = userSessions.Count;
 
             double avgWaitingTime = allResults.Count > 0

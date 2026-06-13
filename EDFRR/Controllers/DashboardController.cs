@@ -47,11 +47,17 @@ public class DashboardController : Controller
                     : await _dashboardService.GetDashboardDataForUserAsync(userId);
             }
 
+            var recentSessions = data.AllSessions
+                .OrderByDescending(s => s.CreatedAt)
+                .Take(5)
+                .ToList();
+
             var viewModel = new DashboardViewModel
             {
                 Statistics = data,
                 SelectedSessionId = sessionId,
-                IsAdmin = isAdmin
+                IsAdmin = isAdmin,
+                RecentSessions = recentSessions
             };
 
             return View(viewModel);

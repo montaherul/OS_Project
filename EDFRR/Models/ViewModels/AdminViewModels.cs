@@ -1,4 +1,5 @@
-﻿using EDFRR.Models.DTOs;
+﻿using System.ComponentModel.DataAnnotations;
+using EDFRR.Models.DTOs;
 
 namespace EDFRR.Models.ViewModels;
 
@@ -25,6 +26,30 @@ public class UserManagementViewModel
 public class UserDetailsViewModel
 {
     public AdminUserDetailDto User { get; set; } = new();
+}
+
+public class CreateUserViewModel
+{
+    [Required(ErrorMessage = "Email is required")]
+    [EmailAddress]
+    public string Email { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Password is required")]
+    [DataType(DataType.Password)]
+    [StringLength(100, MinimumLength = 6, ErrorMessage = "Password must be at least 6 characters")]
+    public string Password { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "First name is required")]
+    public string FirstName { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Last name is required")]
+    public string LastName { get; set; } = string.Empty;
+
+    [Phone]
+    public string? PhoneNumber { get; set; }
+
+    [Required(ErrorMessage = "Role is required")]
+    public string Role { get; set; } = "User";
 }
 
 public class EditUserViewModel

@@ -78,7 +78,8 @@ public class SimulationService : ISimulationService
             ProcessName = g.ProcessName,
             StartTime = g.StartTime,
             EndTime = g.EndTime,
-            IsContextSwitch = g.IsContextSwitch
+            IsContextSwitch = g.IsContextSwitch,
+            IsIdle = g.IsIdle
         }).ToList();
 
         var currentGantt = ganttChart.Where(g => g.StartTime <= currentTimeStep && g.EndTime > currentTimeStep).ToList();
@@ -126,7 +127,8 @@ public class SimulationService : ISimulationService
             ProcessName = g.ProcessName,
             StartTime = g.StartTime,
             EndTime = g.EndTime,
-            IsContextSwitch = g.IsContextSwitch
+            IsContextSwitch = g.IsContextSwitch,
+            IsIdle = g.IsIdle
         }).ToList();
 
         var processStates = result.Context.Processes.Select(p => new ProcessStateDto

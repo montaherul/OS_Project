@@ -258,7 +258,7 @@ else
         <script>
             (function() {
                 var ganttData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.GanttChart));
-                renderGanttChart('ganttChart', ganttData);
+                setupGanttControls('ganttChart', ganttData);
             })();
         </script>
     }
