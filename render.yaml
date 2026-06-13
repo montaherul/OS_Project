@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: edfrr
+    runtime: docker
+    repo: https://github.com/yourusername/EDFRR
+    plan: free
+    region: oregon
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ASPNETCORE_URLS
+        value: http://+:80
+      - key: ConnectionStrings__DefaultConnection
+        sync: false
+      - key: ApplicationSettings__CompanyName
+        value: EDFRR
+      - key: ApplicationSettings__ItemsPerPage
+        value: "10"
+      - key: ApplicationSettings__DefaultTimeQuantum
+        value: "4"
+    healthCheckPath: /
