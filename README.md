@@ -10,7 +10,7 @@ A web-based platform for simulating, analyzing, and visualizing real-time CPU sc
 
 ```bash
 # 1. Clone
-git clone https://github.com/yourusername/EDFRR.git
+git clone https://github.com/montaherul/OS_Project.git
 cd EDFRR
 
 # 2. Update connection string in EDFRR/appsettings.json
