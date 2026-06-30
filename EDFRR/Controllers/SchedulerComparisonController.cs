@@ -95,7 +95,7 @@ public class SchedulerComparisonController : Controller
                 return GenerateExcelExport(exportData);
             }
 
-            return RedirectToAction(nameof(Index), new { sessionId = exportData.SessionName });
+            return RedirectToAction(nameof(Index), new { sessionId = exportData.SessionId });
         }
         catch (Exception ex)
         {

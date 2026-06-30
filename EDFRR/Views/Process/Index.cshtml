@@ -72,7 +72,7 @@
                         {
                             <tr>
                                 <td><span class="mono">@p.Name</span></td>
-                                <td><span class="mono">P@p.ProcessId</span></td>
+                                <td><span class="mono">@p.ProcessId</span></td>
                                 <td><span class="mono">@p.BurstTime</span></td>
                                 <td><span class="mono">@p.ArrivalTime</span></td>
                                 <td><span class="mono">@p.Deadline</span></td>
@@ -92,7 +92,7 @@
                                         <a asp-area="" asp-action="Edit" asp-route-id="@p.Id" class="btn-ghost btn-icon btn-sm" title="Edit">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        <form asp-area="" asp-action="Delete" asp-route-id="@p.Id" method="post" class="d-inline">
+                                        <form asp-area="" asp-action="Delete" asp-route-id="@p.Id" asp-route-sessionId="@Model.SessionId" method="post" class="d-inline">
                                             @Html.AntiForgeryToken()
                                             <button type="submit" class="btn-danger btn-icon btn-sm" title="Delete"
                                                     onclick="return confirm('Delete process &quot;@p.Name&quot;?')">

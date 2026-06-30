@@ -74,7 +74,11 @@ public class RegisterModel : PageModel
         {
             await _userManager.AddToRoleAsync(user, "User");
             await _signInManager.SignInAsync(user, isPersistent: false);
-            return LocalRedirect(returnUrl);
+
+            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl) && returnUrl != "/")
+                return LocalRedirect(returnUrl);
+
+            return RedirectToAction("Index", "Dashboard", new { area = "" });
         }
 
         foreach (var error in result.Errors)

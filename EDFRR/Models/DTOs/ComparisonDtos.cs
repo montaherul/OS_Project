@@ -48,6 +48,7 @@ public class ChartDatasetDto
 
 public class ComparisonExportDto
 {
+    public int SessionId { get; set; }
     public string SessionName { get; set; } = string.Empty;
     public string AlgorithmType { get; set; } = string.Empty;
     public int ProcessCount { get; set; }

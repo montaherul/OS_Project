@@ -165,6 +165,7 @@ public class ComparisonService : IComparisonService
 
         return new ComparisonExportDto
         {
+            SessionId = comparison.SchedulingSessionId,
             SessionName = session?.Name ?? "",
             AlgorithmType = session?.AlgorithmType ?? "",
             ProcessCount = processes.Count(),

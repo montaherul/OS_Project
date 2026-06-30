@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace EDFRR.Areas.Admin.Controllers;
 
 [Area("Admin")]
-[Authorize]
+[Authorize(Roles = "Admin")]
 public class ProcessController : Controller
 {
     public IActionResult Import(int sessionId)
