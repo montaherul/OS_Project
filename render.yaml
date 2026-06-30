@@ -2,7 +2,7 @@ services:
   - type: web
     name: edfrr
     runtime: docker
-    repo: https://github.com/yourusername/EDFRR
+    repo: https://github.com/montaherul/OS_Project
     plan: free
     region: oregon
     dockerfilePath: ./Dockerfile
